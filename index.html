@@ -6,8 +6,8 @@
       name="viewport"
       content="width=device-width, initial-scale=1, viewport-fit=cover"
     />
-    <title>The Daily Blend | Your day, beautifully in balance</title>
-    <meta name="description" content="A student planner for your classes, assignments, events, and everything in between. Bring Canvas and Learning Suite together in The Daily Blend.">
+    <title>Upnext | Your day, beautifully in balance</title>
+    <meta name="description" content="A student planner for your classes, assignments, events, and everything in between. Bring Canvas and Learning Suite together in Upnext.">
     <meta name="theme-color" content="#2845d6">
     <style>
       :root {
@@ -2741,8 +2741,8 @@ details li {margin-bottom:8px;}
     <div id="app" data-page="login">
       <!-- Immediate branded loading view: paint before the authentication SDK arrives. -->
       <main id="main-content" class="main login cb-auth" tabindex="-1">
-        <aside class="cb-auth-story" aria-label="Welcome to The Daily Blend">
-          <a class="cb-auth-brand" href="#login">THE DAILY BLEND</a>
+        <aside class="cb-auth-story" aria-label="Welcome to Upnext">
+          <a class="cb-auth-brand" href="#login">UPNEXT</a>
           <span class="cb-auth-orbit" aria-hidden="true"></span>
           <p class="cb-eyebrow">LESS JUGGLING. MORE LIVING.</p>
           <h2>All your plans.<br>A little more<br><em>possibility.</em></h2>
@@ -3902,10 +3902,10 @@ function shell(title, body, o = {}) {
   const route = (location.hash || '#summary').slice(1);
   const subtitle = {summary:'A little structure. A lot more possibility.',day:'Make room for what matters.',week:'Your week, with a little breathing room.',month:'See the bigger picture.',todo:'One thing at a time. You have this.',discovery:'Find your next good thing.',settings:'Make this space your own.',profile:'The person behind the plans.',add:'Give your plans a place to land.'}[route] || 'Your day, beautifully in balance.';
   const links = [['s','summary','Summary','summary'],['c','day','Calendar','calendar'],['t','todo','To-Do','todo'],['d','discovery','Discovery','discovery'],['settings','settings','Settings','settings']];
-  return `<header class="top"><div class="cb-page-heading"><p class="cb-eyebrow">YOUR DAILY BLEND</p><h1>${title}</h1><p class="cb-subtitle">${subtitle}</p></div><div class="cb-top-actions">${o.left || '<a class="ic" href="#settings" aria-label="Open settings">' + cbIcon('settings') + '</a>'}${o.right || `<a class="ic cb-profile-link" href="#profile" aria-label="Open profile">${S.photo ? `<img src="${esc(S.photo)}" alt="">` : profileInitial()}</a>`}</div></header>
+  return `<header class="top"><div class="cb-page-heading"><p class="cb-eyebrow">UPNEXT</p><h1>${title}</h1><p class="cb-subtitle">${subtitle}</p></div><div class="cb-top-actions">${o.left || '<a class="ic" href="#settings" aria-label="Open settings">' + cbIcon('settings') + '</a>'}${o.right || `<a class="ic cb-profile-link" href="#profile" aria-label="Open profile">${S.photo ? `<img src="${esc(S.photo)}" alt="">` : profileInitial()}</a>`}</div></header>
     <main id="main-content" class="main" tabindex="-1">${body}</main>
     ${o.fab ? '<button class="fab" onclick="newItem()" aria-label="Add task or event">' + cbIcon('plus') + ' Add new</button>' : ''}
-    ${o.nav ? `<nav class="nav" aria-label="Main navigation"><a class="cb-brand" href="#summary" aria-label="The Daily Blend home"><span class="cb-brand-mark" aria-hidden="true"></span><span>THE DAILY<br>BLEND<span class="cb-brand-caption">A little more together.</span></span></a>${links.map(([key,href,label,icon]) => {const active = key === 'settings' ? route === 'settings' : o.nav === key && route !== 'settings';return `<a class="cb-nav-link ${active ? 'on' : ''}" href="#${href}" ${active ? 'aria-current="page"' : ''}>${cbIcon(icon)}<span>${label}</span></a>`;}).join('')}<div class="cb-sidebar-note"><span class="cb-note-shape" aria-hidden="true"></span><strong>Big plans.<br>Small steps.</strong><span>School, life, and a little space for you.</span></div><a class="cb-sidebar-profile" href="#profile"><span class="cb-avatar">${profileInitial()}</span><span>${esc(S.prof.name || 'Your account')}<small>Profile & account</small></span></a></nav>` : ''}`;
+    ${o.nav ? `<nav class="nav" aria-label="Main navigation"><a class="cb-brand" href="#summary" aria-label="Upnext home"><span class="cb-brand-mark" aria-hidden="true"></span><span>UPNEXT<span class="cb-brand-caption">A little more together.</span></span></a>${links.map(([key,href,label,icon]) => {const active = key === 'settings' ? route === 'settings' : o.nav === key && route !== 'settings';return `<a class="cb-nav-link ${active ? 'on' : ''}" href="#${href}" ${active ? 'aria-current="page"' : ''}>${cbIcon(icon)}<span>${label}</span></a>`;}).join('')}<div class="cb-sidebar-note"><span class="cb-note-shape" aria-hidden="true"></span><strong>Big plans.<br>Small steps.</strong><span>School, life, and a little space for you.</span></div><a class="cb-sidebar-profile" href="#profile"><span class="cb-avatar">${profileInitial()}</span><span>${esc(S.prof.name || 'Your account')}<small>Profile & account</small></span></a></nav>` : ''}`;
 }
 
 const seg = (v) =>
@@ -3973,7 +3973,7 @@ const newItem = (k) => {
       }
       function login() {
         const c = LM === "up";
-        return `<main id="main-content" class="main login cb-auth" tabindex="-1"><aside class="cb-auth-story" aria-label="Welcome to The Daily Blend"><a class="cb-auth-brand" href="#login">THE DAILY BLEND</a><span class="cb-auth-orbit" aria-hidden="true"></span><p class="cb-eyebrow">LESS JUGGLING. MORE LIVING.</p><h2>All your plans.<br>A little more<br><em>possibility.</em></h2><p>Classes, deadlines, and everything in between. One space to bring your day together.</p><div class="cb-auth-tags"><span>School</span><span>Life</span><span>You</span></div><small>Built for the rhythm of student life.</small></aside><section class="cb-auth-form"><p class="cb-eyebrow">MAKE YOURSELF AT HOME</p><h1>${c ? "Your next chapter." : "Welcome back."}</h1><p class="cb-auth-intro">${c ? "A fresh start for a more balanced day." : "Your plans are ready when you are."}</p>
+        return `<main id="main-content" class="main login cb-auth" tabindex="-1"><aside class="cb-auth-story" aria-label="Welcome to Upnext"><a class="cb-auth-brand" href="#login">UPNEXT</a><span class="cb-auth-orbit" aria-hidden="true"></span><p class="cb-eyebrow">LESS JUGGLING. MORE LIVING.</p><h2>All your plans.<br>A little more<br><em>possibility.</em></h2><p>Classes, deadlines, and everything in between. One space to bring your day together.</p><div class="cb-auth-tags"><span>School</span><span>Life</span><span>You</span></div><small>Built for the rhythm of student life.</small></aside><section class="cb-auth-form"><p class="cb-eyebrow">MAKE YOURSELF AT HOME</p><h1>${c ? "Your next chapter." : "Welcome back."}</h1><p class="cb-auth-intro">${c ? "A fresh start for a more balanced day." : "Your plans are ready when you are."}</p>
 ${DBERR.length ? `<div class="err">${DBERR.map(esc).join("<br>")}<br>Check the setup guide for missing tables or columns, then reload. If birth_date is missing, run tasks-events-update.sql.</div>` : ""}
 <div class="seg"><a href="#login" class="${c ? "" : "on"}" onclick="LM='in';r()">Log in</a><a href="#login" class="${c ? "on" : ""}" onclick="LM='up';r()">Create account</a></div>
 <form id="auth-form" ${c ? "novalidate" : ""} onsubmit="event.preventDefault();auth()">${c ? '<p class="signup-note">Only Full name, Email address, and Password are required. You can add everything else later in your profile.</p>' : ""}${c ? `<label for="su-name">Full name <span class="required-star" aria-hidden="true">*</span> <small class="required-label">Required</small></label><input id="su-name" type="text" maxlength="50" required autocomplete="name" aria-describedby="su-name-help" oninput="chk()"><small id="su-name-help" class="signup-field-help">Up to 50 characters. Use letters, spaces, hyphens, and apostrophes.</small>
@@ -4045,7 +4045,7 @@ ${DBERR.length ? `<div class="err">${DBERR.map(esc).join("<br>")}<br>Check the s
 <label for="pw">Password${c ? ' <span class="required-star" aria-hidden="true">*</span> <small class="required-label">Required</small>' : ""}</label><input id="pw" type="password" required minlength="${c ? 8 : 1}" autocomplete="${c ? "new-password" : "current-password"}" oninput="chk()">
 <label style="display:flex;gap:8px;align-items:center"><input id="st" type="checkbox" ${remember ? "checked" : ""}> Stay logged in</label>
 <div id="er" class="err" role="status" aria-live="polite"></div><button class="btn ${c ? "is-incomplete" : ""}" id="go" ${c ? "" : "disabled"}>${c ? "Create account" : "Log in"}</button></form>
-${!useSB ? "<p>Live login requires your Supabase URL and public key.</p>" : ""}<p class="cb-auth-footer">The Daily Blend · Your day, beautifully in balance.</p></section></main>`;
+${!useSB ? "<p>Live login requires your Supabase URL and public key.</p>" : ""}<p class="cb-auth-footer">Upnext · Your day, beautifully in balance.</p></section></main>`;
       }
       // Accept accented letters, spaces, hyphens, and apostrophes in full names.
       function validSignupName(value) {
@@ -6745,7 +6745,7 @@ function cbEnhanceAccessibility(route) {
     const luminance = linear[0]*0.2126 + linear[1]*0.7152 + linear[2]*0.0722;
     el.style.color = luminance > 0.179 ? '#000000' : '#ffffff';
   });
-  document.title = 'The Daily Blend | ' + ({login:'Welcome',summary:'Summary',todo:'To-Do',day:'Day calendar',week:'Week calendar',month:'Month calendar',settings:'Settings',profile:'Profile',discovery:'Discovery',add:'Add a plan','confirm-email':'Confirm email'}[route] || 'Student planner');
+  document.title = 'Upnext | ' + ({login:'Welcome',summary:'Summary',todo:'To-Do',day:'Day calendar',week:'Week calendar',month:'Month calendar',settings:'Settings',profile:'Profile',discovery:'Discovery',add:'Add a plan','confirm-email':'Confirm email'}[route] || 'Student planner');
   document.querySelectorAll('#app [onclick]').forEach(el => {
     if (el.matches('button,a,input,select,textarea,label,summary') || el.closest('button,a')) return;
     if (!el.querySelector('button,a,input,select,textarea')) {el.tabIndex = 0; el.setAttribute('role','button');}
