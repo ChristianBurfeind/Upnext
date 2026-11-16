@@ -2602,6 +2602,25 @@ textarea {min-height:120px;}
 .cb-event-time {font-size:12px;font-weight:800;min-width:66px;color:var(--pri);}
 .sw {background:var(--card);padding:16px;margin-bottom:8px;border:1px solid var(--line);border-radius:12px;gap:14px;font-weight:600;}
 .sw select {width:150px;}
+.notification-settings {background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin:16px 0 24px;}
+.notification-settings h2 {margin:0 0 8px;}
+.notification-settings > label:not(.notification-switch) {display:block;margin:14px 0 6px;font-weight:650;}
+.notification-settings input:not([type="checkbox"]),.notification-settings select {width:100%;min-height:42px;border:1px solid var(--line);border-radius:9px;padding:8px 10px;background:var(--bg);color:var(--ink);}
+.notification-switch {display:flex;align-items:center;gap:11px;padding:13px 0;border-bottom:1px solid var(--line);cursor:pointer;}
+.notification-switch input {width:18px;height:18px;flex:none;}
+.notification-switch span {display:grid;gap:3px;}
+.notification-switch small,.notification-help {font-size:12px;color:var(--mut);font-weight:400;}
+.notification-time-zone-row,.notification-fields-row,.notification-actions {display:flex;align-items:center;gap:8px;}
+.notification-time-zone-row select,.notification-fields-row select {flex:1;min-width:0;}
+.notification-time-zone-row .btn {white-space:nowrap;}
+.notification-actions {margin-top:16px;flex-wrap:wrap;}
+.notification-status {font-size:13px;color:var(--mut);min-height:1em;}
+.notification-error {color:var(--urg);}
+.item-reminder-box {border:1px solid var(--line);border-radius:10px;background:var(--card);padding:12px;margin:12px 0;}
+.item-reminder-box > label:not(.item-reminder-toggle) {display:block;margin:10px 0 5px;font-weight:600;}
+.item-reminder-toggle {display:flex;gap:9px;align-items:center;font-weight:650;}
+.item-reminder-box input:not([type="checkbox"]),.item-reminder-box select {width:100%;min-height:40px;border:1px solid var(--line);border-radius:8px;padding:7px 9px;background:var(--bg);color:var(--ink);}
+.item-reminder-box small {color:var(--mut);font-size:12px;}
 .tog {width:48px;height:30px;min-height:30px;border:1px solid #747c90;background:#747c90;}
 .tog::after {top:4px;left:4px;}.tog.on::after {left:24px;}.tog.on {background:var(--pri);border-color:var(--pri);}
 .kv {padding:17px 12px;border-color:var(--line);background:var(--card);gap:14px;}
@@ -2721,6 +2740,7 @@ details li {margin-bottom:8px;}
   .wk {gap:3px;}.wk > div {padding:3px;}.wk > div > b {font-size:11px;}.wk span {font-size:10px;}
   .mo {padding:3px;}.mo > div {min-height:68px;padding:4px;}
   .sw {padding:13px;}.sw select {width:125px;}#discovery-interests {grid-template-columns:1fr;}
+  .notification-settings {padding:14px;}.notification-time-zone-row {align-items:stretch;flex-direction:column;}.notification-time-zone-row .btn {width:100%;}.notification-fields-row {align-items:stretch;flex-direction:column;}
   #app .main.login.cb-auth {width:calc(100% - 28px);margin:16px auto 30px;grid-template-columns:1fr;min-height:0;border-radius:20px;}
   .cb-auth-story {padding:26px;}.cb-auth-brand {margin-bottom:30px;font-size:17px;}.cb-auth-story h2 {font-size:38px;letter-spacing:-1.4px;}.cb-auth-story h2 br {display:none;}.cb-auth-story h2 br::after {content:' ';}.cb-auth-story h2 {max-width:340px;}
   .cb-auth-story > p:not(.cb-eyebrow) {font-size:13px;margin-bottom:8px;}.cb-auth-tags,.cb-auth-story small {display:none;}
@@ -2867,6 +2887,16 @@ details li {margin-bottom:8px;}
           /[&<>"]/g,
           (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c],
         );
+      const defaultNotificationPreferences = () => ({
+        email_enabled: false,
+        event_reminders_enabled: true,
+        event_lead_minutes: 15,
+        task_reminders_enabled: true,
+        task_reminder_time: "18:00",
+        daily_summary_enabled: false,
+        daily_summary_time: "08:00",
+        time_zone: "America/Denver",
+      });
       const TODAY = iso(new Date());
       let D = TODAY,
         E = null,
@@ -2889,6 +2919,10 @@ details li {margin-bottom:8px;}
         photo: "",
         avatar: "",
         photoPath: "",
+        notificationPrefs: defaultNotificationPreferences(),
+        notificationItemSettings: {},
+        notificationSetupReady: false,
+        notificationSetupError: "",
         set: { notif: true, view: "day", wk: 1, theme: "royal", sug: true },
         prof: { name: "", school: "BYU", work: "", birthDate: "", gender: "", major: "", age: "" },
       });
@@ -3331,6 +3365,7 @@ details li {margin-bottom:8px;}
                     .insert(mk("todo", { id: it.rid, done: !!it.done })),
                 );
             }
+            await saveItemNotificationSettings(it);
           })();
           await it._p;
           S.customTypes = [...new Set([...(S.customTypes || []), ty(it.type)])];
@@ -3463,6 +3498,103 @@ details li {margin-bottom:8px;}
         try {
           localStorage.setItem("sch_linked_" + S.uid, JSON.stringify(S.linked));
         } catch (e) {}
+      }
+      async function loadNotificationSettings(userId) {
+        S.notificationPrefs = defaultNotificationPreferences();
+        S.notificationItemSettings = {};
+        S.notificationSetupReady = false;
+        S.notificationSetupError = "";
+        if (!live()) return;
+        const { data: preferences, error: preferencesError } = await sb
+          .from("notification_preferences")
+          .select("*")
+          .eq("user_id", userId)
+          .maybeSingle();
+        if (preferencesError) {
+          S.notificationSetupError = /PGRST205|42P01|does not exist/i.test(
+            `${preferencesError.code || ""} ${preferencesError.message || ""}`,
+          )
+            ? "Email notifications need their database setup first. Ask the project administrator to run notifications-setup.sql."
+            : "Email notification settings could not be loaded. " + preferencesError.message;
+          return;
+        }
+        const { data: itemSettings, error: itemError } = await sb
+          .from("notification_item_settings")
+          .select("*")
+          .eq("user_id", userId);
+        if (itemError) {
+          S.notificationSetupError = "Email notification settings could not be loaded. " + itemError.message;
+          return;
+        }
+        S.notificationSetupReady = true;
+        S.notificationPrefs = {
+          ...defaultNotificationPreferences(),
+          ...(preferences || {}),
+          event_lead_minutes: Number(preferences?.event_lead_minutes ?? 15),
+          task_reminder_time: String(preferences?.task_reminder_time || "18:00").slice(0, 5),
+          daily_summary_time: String(preferences?.daily_summary_time || "08:00").slice(0, 5),
+          time_zone: preferences?.time_zone || "America/Denver",
+        };
+        S.notificationItemSettings = Object.fromEntries(
+          (itemSettings || []).map((row) => [
+            `${row.item_type}:${row.item_id}`,
+            row,
+          ]),
+        );
+        S.items.forEach((item) => {
+          const setting = S.notificationItemSettings[`${item.kind}:${item.rid}`];
+          if (!setting) return;
+          item.reminderEnabled = setting.reminder_enabled !== false;
+          item.eventLeadMinutes = setting.event_lead_minutes == null
+            ? null
+            : Number(setting.event_lead_minutes);
+          item.taskReminderDate = setting.task_reminder_date || null;
+          item.taskReminderTime = setting.task_reminder_time
+            ? String(setting.task_reminder_time).slice(0, 5)
+            : null;
+        });
+      }
+      async function saveItemNotificationSettings(item) {
+        if (!live() || !S.notificationSetupReady || !item.rid) return;
+        const isEvent = item.kind === "event";
+        const row = {
+          user_id: S.uid,
+          item_type: item.kind,
+          item_id: String(item.rid),
+          reminder_enabled: item.reminderEnabled !== false,
+          event_lead_minutes: isEvent && item.eventLeadMinutes != null
+            ? Number(item.eventLeadMinutes)
+            : null,
+          task_reminder_date: !isEvent && item.taskReminderDate
+              && item.taskReminderDate !== item.date
+            ? item.taskReminderDate
+            : null,
+          task_reminder_time: !isEvent && item.taskReminderTime
+              && item.taskReminderTime !== (S.notificationPrefs?.task_reminder_time || "18:00")
+            ? item.taskReminderTime
+            : null,
+          updated_at: new Date().toISOString(),
+        };
+        const { error } = await sb
+          .from("notification_item_settings")
+          .upsert(row, { onConflict: "user_id,item_type,item_id" });
+        if (error) throw error;
+        S.notificationItemSettings[`${item.kind}:${item.rid}`] = row;
+      }
+      async function removeItemNotificationSettings(kind, ids) {
+        if (!live() || !S.notificationSetupReady || !ids.length) return;
+        try {
+          const { error } = await sb
+            .from("notification_item_settings")
+            .delete()
+            .eq("user_id", S.uid)
+            .eq("item_type", kind)
+            .in("item_id", ids.map(String));
+          if (error) throw error;
+          ids.forEach((id) => delete S.notificationItemSettings[`${kind}:${id}`]);
+        } catch (error) {
+          console.warn("Could not remove old notification preferences", error);
+        }
       }
       async function loadSB() {
         const id = S.uid,
@@ -3618,6 +3750,7 @@ details li {margin-bottom:8px;}
             src: srcOf(r[ME.desc] || ""),
           })),
         ].filter((i) => i.date);
+        await loadNotificationSettings(id);
         S.interests = ints.map((r) => r[MI.val]);
       }
       function startDemo() {
@@ -3901,7 +4034,7 @@ function cbIcon(name) {
 function shell(title, body, o = {}) {
   const route = (location.hash || '#summary').slice(1);
   const subtitle = {summary:'A little structure. A lot more possibility.',day:'Make room for what matters.',week:'Your week, with a little breathing room.',month:'See the bigger picture.',todo:'One thing at a time. You have this.',discovery:'Find your next good thing.',settings:'Make this space your own.',profile:'The person behind the plans.',add:'Give your plans a place to land.'}[route] || 'Your day, beautifully in balance.';
-  const links = [['s','summary','Summary','summary'],['c',S.set.view,'Calendar','calendar'],['t','todo','To-Do','todo'],['d','discovery','Discovery','discovery'],['settings','settings','Settings','settings']];
+  const links = [['s','summary','Summary','summary'],['c','day','Calendar','calendar'],['t','todo','To-Do','todo'],['d','discovery','Discovery','discovery'],['settings','settings','Settings','settings']];
   return `<header class="top"><div class="cb-page-heading"><p class="cb-eyebrow">UPNEXT</p><h1>${title}</h1><p class="cb-subtitle">${subtitle}</p></div><div class="cb-top-actions">${o.left || '<a class="ic" href="#settings" aria-label="Open settings">' + cbIcon('settings') + '</a>'}${o.right || `<a class="ic cb-profile-link" href="#profile" aria-label="Open profile">${S.photo ? `<img src="${esc(S.photo)}" alt="">` : profileInitial()}</a>`}</div></header>
     <main id="main-content" class="main" tabindex="-1">${body}</main>
     ${o.fab ? '<button class="fab" onclick="newItem()" aria-label="Add task or event">' + cbIcon('plus') + ' Add new</button>' : ''}
@@ -3957,56 +4090,6 @@ const newItem = (k) => {
       }
       let pendingEmail =
         sessionStorage.getItem("scheduler_pending_email") || "";
-      const confirmationRedirect = "https://christianburfeind.github.io/Upnext/";
-      const resendCooldown = 30_000;
-      const resendDeadlineKey = "scheduler_resend_deadline";
-      let resendDeadline = Number(sessionStorage.getItem(resendDeadlineKey)) || 0;
-      let resendTimer;
-      let resending = false;
-
-      function startResendCooldown() {
-        resendDeadline = Date.now() + resendCooldown;
-        sessionStorage.setItem(resendDeadlineKey, String(resendDeadline));
-      }
-
-      function updateResendButton() {
-        clearTimeout(resendTimer);
-        const button = $("#resend-confirmation");
-        if (!button) return;
-        const seconds = Math.max(0, Math.ceil((resendDeadline - Date.now()) / 1000));
-        button.disabled = resending || seconds > 0 || !useSB || !pendingEmail;
-        button.style.opacity = button.disabled ? "0.65" : "1";
-        button.textContent = resending ? "Sending…" : "Resend confirmation email";
-        $("#resend-countdown").textContent = seconds > 0 ? "Resend available in " + seconds + "s" : "";
-        if (seconds > 0) resendTimer = setTimeout(updateResendButton, 250);
-      }
-
-      async function resendConfirmation() {
-        if (resending || Date.now() < resendDeadline || !pendingEmail || !useSB) return;
-        const email = pendingEmail;
-        const status = $("#resend-status");
-        resending = true;
-        status.textContent = "";
-        updateResendButton();
-        try {
-          const { error } = await sb.auth.resend({
-            type: "signup",
-            email,
-            options: { emailRedirectTo: confirmationRedirect },
-          });
-          if (error) throw error;
-          if (email === pendingEmail) startResendCooldown();
-          status.textContent = "Confirmation email sent. Check your inbox.";
-        } catch (error) {
-          status.textContent = error.status === 429
-            ? "Email sending is temporarily limited. Wait a little longer and try again."
-            : nice(error);
-        } finally {
-          resending = false;
-          updateResendButton();
-        }
-      }
-
       function confirmEmail() {
         return `<main id="main-content" class="main login" tabindex="-1" aria-labelledby="confirm-title">
           <div class="welcome-icon" aria-hidden="true">💌</div>
@@ -4019,9 +4102,6 @@ const newItem = (k) => {
           <button class="btn" onclick="LM='in';go('login');r()">Back to log in</button>
           <button class="btn alt" onclick="LM='up';go('login');r()">Use a different email</button>
           <p class="welcome-copy" style="font-size:13px">Don’t see it? Check your spam or junk folder, and give it a few minutes.</p>
-          <button type="button" id="resend-confirmation" style="border:0;background:transparent;color:var(--pri);font:inherit;font-size:11px;text-decoration:underline;padding:8px;cursor:pointer" disabled onclick="resendConfirmation()">Resend confirmation email</button>
-          <small id="resend-countdown" style="display:block;font-size:10px;color:var(--mut)"></small>
-          <div id="resend-status" role="status" style="font-size:12px"></div>
         </main>`;
       }
       function login() {
@@ -4210,7 +4290,7 @@ ${!useSB ? "<p>Live login requires your Supabase URL and public key.</p>" : ""}<
                   email,
                   password,
                   options: {
-                    emailRedirectTo: confirmationRedirect,
+                    emailRedirectTo: "https://christianburfeind.github.io/IS401_CalendarAppProject/",
                     data: {
                       name: $("#su-name").value.trim(),
                       school: $("#su-school").value.trim(),
@@ -4231,7 +4311,6 @@ ${!useSB ? "<p>Live login requires your Supabase URL and public key.</p>" : ""}<
           if (result.error) throw result.error;
           if (!result.data.session) {
             pendingEmail = email;
-            startResendCooldown();
             sessionStorage.setItem("scheduler_pending_email", email);
             go("confirm-email");
             r();
@@ -4272,7 +4351,7 @@ ${!useSB ? "<p>Live login requires your Supabase URL and public key.</p>" : ""}<
         return shell('Your day, in focus.', `
           <section class="cb-hero" aria-label="Daily overview"><div class="cb-welcome"><p class="cb-eyebrow">A FRESH PERSPECTIVE</p><h2>Hello, ${esc(firstName)}.</h2><p>${L(TODAY,{weekday:'long',month:'long',day:'numeric',year:'numeric'})}</p><span class="cb-hero-shape" aria-hidden="true"></span></div><div class="cb-stat"><span class="cb-eyebrow">ON YOUR RADAR</span><strong>${pending.length}</strong><span>tasks due today</span><small>${todayEvents.length} events · ${social} social plans</small></div></section>
           <div class="cb-summary-grid"><section class="cb-panel cb-task-panel"><header class="cb-panel-heading"><h2>Tasks due today</h2><span class="cb-count">${pending.length} remaining</span></header><p class="cb-panel-intro">Make progress, one checkbox at a time.</p>${todayTasks.map(trow).join('') || '<div class="cb-empty">A little breathing room.<small>No tasks due today.</small></div>'}<a class="cb-text-link" href="#todo">Open your to-do list <span aria-hidden="true">↗</span></a></section>
-          <section class="cb-panel cb-schedule-panel"><header class="cb-panel-heading"><h2>Today's schedule</h2>${cbIcon('calendar')}</header>${todayEvents.map(evRow).join('') || '<div class="cb-empty">An open canvas.<small>No events scheduled today.</small></div>'}<a class="cb-text-link" href="#${S.set.view}" onclick="D=TODAY">View calendar <span aria-hidden="true">↗</span></a></section>
+          <section class="cb-panel cb-schedule-panel"><header class="cb-panel-heading"><h2>Today's schedule</h2>${cbIcon('calendar')}</header>${todayEvents.map(evRow).join('') || '<div class="cb-empty">An open canvas.<small>No events scheduled today.</small></div>'}<a class="cb-text-link" href="#day" onclick="D=TODAY">View calendar <span aria-hidden="true">↗</span></a></section>
           <section class="cb-panel cb-upcoming-panel"><header class="cb-panel-heading"><h2>Coming up</h2>${cbIcon('todo')}</header>${nextTasks.map(item => `<button class="cb-upcoming-item" type="button" onclick="openEv('${item.id}')"><span>${L(item.date,{weekday:'short',month:'short',day:'numeric'})}</span><strong>${esc(item.title)}</strong></button>`).join('') || '<p class="cb-panel-intro">Your next seven days are clear of tasks.</p>'}</section></div>
           ${reminders.length ? `<section class="cb-panel cb-reminders"><details><summary>Your reminders <span class="cb-count">${reminders.length}</span></summary><p class="cb-panel-intro">School deadlines and social plans coming up soon.</p>${reminders.map(item => `<button class="cb-reminder-item" type="button" onclick="openEv('${item.id}')">${esc(item.title)}<span>${item.kind === 'event' ? 'Starts at ' + t12(item.time) : (item.date === TODAY ? 'Due today' : 'Due tomorrow')}</span></button>`).join('')}</details></section>` : ''}`, {nav:'s',fab:1});
       }
@@ -4690,6 +4769,39 @@ function setTodoView(view) {
     );
   }
       const val = (k, d) => (DR ? DR[k] : d);
+      function itemReminderFields(isEvent) {
+        const p = S.notificationPrefs || defaultNotificationPreferences();
+        const enabled = DR.reminderEnabled !== false;
+        if (isEvent) {
+          const presets = [0, 5, 15, 30, 60, 120, 1440, 10080, 43200];
+          const selected = DR.eventLeadMinutes == null
+            ? "default"
+            : presets.includes(Number(DR.eventLeadMinutes))
+              ? String(DR.eventLeadMinutes)
+              : "custom";
+          const custom = selected === "custom" ? Number(DR.eventLeadMinutes) : 15;
+          return `<section class="item-reminder-box" aria-label="Event email reminder">
+            <label class="item-reminder-toggle"><input id="f-reminder-enabled" type="checkbox" ${enabled ? "checked" : ""}> Email reminder for this event</label>
+            <label for="f-event-lead">Remind me</label>
+            <select id="f-event-lead" onchange="rd();r()">
+              <option value="default" ${selected === "default" ? "selected" : ""}>Use my default (${Number(p.event_lead_minutes || 15)} minutes before)</option>
+              ${presets.map((minutes) => `<option value="${minutes}" ${selected === String(minutes) ? "selected" : ""}>${minutes === 0 ? "At event time" : minutes < 60 ? `${minutes} minutes before` : minutes % 1440 === 0 ? `${minutes / 1440} days before` : minutes % 60 === 0 ? `${minutes / 60} hours before` : `${minutes} minutes before`}</option>`).join("")}
+              <option value="custom" ${selected === "custom" ? "selected" : ""}>Custom minutes</option>
+            </select>
+            ${selected === "custom" ? `<label for="f-event-lead-custom">Minutes before event</label><input id="f-event-lead-custom" type="number" min="0" max="43200" step="1" value="${custom}">` : ""}
+            <small>All-day event reminders use 9:00 a.m. in your notification time zone.</small>
+          </section>`;
+        }
+        const dueDate = DR.date || TODAY;
+        const reminderDate = DR.taskReminderDate || dueDate;
+        const reminderTime = DR.taskReminderTime || p.task_reminder_time || "18:00";
+        return `<section class="item-reminder-box" aria-label="Task email reminder">
+          <label class="item-reminder-toggle"><input id="f-reminder-enabled" type="checkbox" ${enabled ? "checked" : ""}> Email reminder for this task</label>
+          <label for="f-task-reminder-date">Reminder date</label><input id="f-task-reminder-date" type="date" value="${esc(reminderDate)}">
+          <label for="f-task-reminder-time">Reminder time</label><input id="f-task-reminder-time" type="time" value="${esc(reminderTime)}">
+          <small>Defaults to the task's due date and your ${esc(p.task_reminder_time || "6:00 p.m.")} task reminder time. Change either field for this task only.</small>
+        </section>`;
+      }
       function addf() {
         const it = E ? calendarItem(E) : null;
         if (!DR)
@@ -4709,6 +4821,10 @@ function setTodoView(view) {
                 repeatFrequency: null,
                 repeatDays: [pd(D).getDay()],
                 repeatUntil: "",
+                reminderEnabled: true,
+                eventLeadMinutes: null,
+                taskReminderDate: null,
+                taskReminderTime: null,
               };
         if (it) AK = it.kind;
         const ev = AK == "event";
@@ -4731,6 +4847,7 @@ ${ev ? `
     <span>Choose a custom event color</span>
   </div>
 ` : ""}
+${S.notificationSetupReady ? itemReminderFields(ev) : `<p class="notification-help">Email reminder controls will appear after notifications-setup.sql is run in Supabase.</p>`}
 <label for="f-pri">Priority (Optional)</label>
 <select id="f-pri">
   ${[0, 1, 2, 3].map((p) =>
@@ -4763,6 +4880,22 @@ ${ev ? `
           repeatFrequency: g("repeat") === "none" ? null : g("repeat") ?? DR.repeatFrequency ?? null,
           repeatDays: [...document.querySelectorAll(".repeat-day:checked")].map((el) => +el.value),
           repeatUntil: g("repeat-until") ?? DR.repeatUntil ?? "",
+          reminderEnabled: $("#f-reminder-enabled")?.checked ?? DR.reminderEnabled ?? true,
+          eventLeadMinutes: AK === "event"
+            ? !$("#f-event-lead") || $("#f-event-lead").value === "default"
+              ? null
+              : $("#f-event-lead").value === "custom"
+                ? Number($("#f-event-lead-custom")?.value)
+                : Number($("#f-event-lead").value)
+            : DR.eventLeadMinutes ?? null,
+          taskReminderDate: AK === "task"
+            ? (($('#f-task-reminder-date')?.value || "") === (g("date") || DR.date)
+              ? null
+              : ($('#f-task-reminder-date')?.value || null))
+            : DR.taskReminderDate ?? null,
+          taskReminderTime: AK === "task"
+            ? ($('#f-task-reminder-time')?.value || null)
+            : DR.taskReminderTime ?? null,
         };
       }
       let savingItem = false;
@@ -4785,6 +4918,10 @@ ${ev ? `
         if (!cleanType(DR.type) || cleanType(DR.type).length > 20)
           return ($("#er").textContent = "Enter a type between 1 and 20 characters.");
         const ev = AK == "event";
+        if (ev && DR.eventLeadMinutes != null && (!Number.isInteger(DR.eventLeadMinutes) || DR.eventLeadMinutes < 0 || DR.eventLeadMinutes > 43200))
+          return ($("#er").textContent = "Event reminders must be between 0 and 43,200 minutes.");
+        if (!ev && DR.reminderEnabled && (!DR.taskReminderTime || !/^\d{2}:\d{2}$/.test(DR.taskReminderTime)))
+          return ($("#er").textContent = "Choose a valid task reminder time.");
         if (ev && !DR.allDay && (!DR.time || !DR.end))
           return ($("#er").textContent = "Please enter both a start time and an end time.");
         if (ev && !DR.allDay && DR.end && mins(DR.end) <= mins(DR.time))
@@ -4934,8 +5071,23 @@ ${ev ? `
         const edit = i.seriesId ? `openSeriesChoice('edit','${i.id}')` : `E='${i.id}';DR=null;go('add')`;
         const del = i.seriesId ? `openSeriesChoice('delete','${i.id}')` : `delItem('${i.id}')`;
         o.innerHTML = `<div class="sheet"><header><h3>${i.kind == "task" ? "Task" : "Event"} details</h3><button class="ic" onclick="this.closest('.ov').remove()" aria-label="Close">✕</button></header>${k("Title", esc(i.title))}${k("Date", L(i.date, { month: "short", day: "numeric", year: "numeric" }))}${i.kind == "event" ? k("Time", i.allDay ? "All day" : t12(i.time) + (i.end ? " – " + t12(i.end) : "")) + k("Location", esc(i.loc)) : ""}${k("Type", esc(typeInfo(i.type)[0]))}${i.holiday ? "" : k("Priority", `<span class="p${i.pri}">${i.pri} · ${PN[i.pri]}</span>`)}${k("Description", esc(i.desc))}
-${i.holiday ? '<p class="photo-hint">Automatically added U.S. federal holiday</p>' : `<div style="display:flex;gap:8px"><button class="btn alt" onclick="${edit}">✎ Edit</button><button class="btn del" onclick="${del}">Delete</button></div>`}</div>`;
+${i.holiday ? '<p class="photo-hint">Automatically added U.S. federal holiday</p>' : `<div style="display:flex;gap:8px;flex-wrap:wrap">${i.kind === "task" && !i.done && i.date <= TODAY ? `<button class="btn alt" onclick="moveTaskToTomorrow('${i.id}')">Move task to tomorrow</button>` : ""}<button class="btn alt" onclick="${edit}">✎ Edit</button><button class="btn del" onclick="${del}">Delete</button></div>`}</div>`;
         $("#app").appendChild(o);
+      }
+      async function moveTaskToTomorrow(id) {
+        const item = S.items.find((entry) => entry.id === id);
+        if (!item || item.kind !== "task" || !item.rid) return;
+        try {
+          const updated = { ...item, date: ad(TODAY, 1), taskReminderDate: null };
+          if (!(await dbItem(updated))) return;
+          Object.assign(item, updated);
+          save();
+          document.querySelector(".ov")?.remove();
+          toast("Task moved to tomorrow. Its email reminder will use the selected task time.");
+          r();
+        } catch (error) {
+          toast("Could not move this task: " + (error.message || String(error)));
+        }
       }
       async function delItem(id, scope = "one") {
         if (itemBusy.has(id)) return;
@@ -4957,6 +5109,15 @@ ${i.holiday ? '<p class="photo-hint">Automatically added U.S. federal holiday</p
             return;
           }
           if (!(await (wholeSeries ? dbDelSeries(d) : dbDel(d)))) return;
+          if (wholeSeries) {
+            const deletedIds = S.items
+              .filter((item) => item.seriesId === d.seriesId)
+              .map((item) => item.rid)
+              .filter(Boolean);
+            await removeItemNotificationSettings("event", deletedIds);
+          } else if (d.rid) {
+            await removeItemNotificationSettings(d.kind, [d.rid]);
+          }
           S.items = S.items.filter((i) => wholeSeries ? i.seriesId !== d.seriesId : i.id != id);
           save();
           toast(wholeSeries ? "Repeating series deleted" : "Deleted");
@@ -5384,22 +5545,154 @@ return `
 
 
       const tgl = (k) =>
-        `<button class="tog ${S.set[k] ? "on" : ""}" aria-label="${({notif:"Notifications",sug:"In-calendar suggestions"})[k] || k}" role="switch" aria-checked="${!!S.set[k]}" onclick="setS('${k}',!S.set.${k})"></button>`;
+        `<button class="tog ${S.set[k] ? "on" : ""}" aria-label="${({notif:"On-page Summary reminders",sug:"In-calendar suggestions"})[k] || k}" role="switch" aria-checked="${!!S.set[k]}" onclick="setS('${k}',!S.set.${k})"></button>`;
       const sel = (k, o) =>
         `<select aria-label="${({view:"Default view",wk:"Week starts on",theme:"Theme"})[k] || k}" onchange="setS('${k}',this.value)">${o.map(([v, n]) => `<option value="${v}" ${S.set[k] == v ? "selected" : ""}>${n}</option>`).join("")}</select>`;
       function setS(k, v) {
         S.set[k] = k == "wk" ? +v : v;
         save();
         dbSettings();
-        if (k == "notif") toast(v ? "Notifications on" : "Notifications off");
+        if (k == "notif") toast(v ? "On-page reminders on" : "On-page reminders off");
         r();
+      }
+
+      const TIME_ZONE_FALLBACK = [
+        "America/Anchorage", "America/Chicago", "America/Denver", "America/Los_Angeles",
+        "America/New_York", "America/Phoenix", "America/Puerto_Rico", "Pacific/Honolulu", "UTC",
+      ];
+      function availableTimeZones() {
+        let zones = TIME_ZONE_FALLBACK;
+        try {
+          if (typeof Intl.supportedValuesOf === "function")
+            zones = Intl.supportedValuesOf("timeZone");
+        } catch {}
+        const current = S.notificationPrefs?.time_zone || "America/Denver";
+        return [...new Set(["America/Denver", ...zones, current])].sort();
+      }
+      function timeZoneLabel(zone) {
+        const labels = {
+          "America/Anchorage": "Alaska Time — Anchorage",
+          "America/Chicago": "Central Time — Chicago",
+          "America/Denver": "Mountain Time — Denver / BYU",
+          "America/Los_Angeles": "Pacific Time — Los Angeles",
+          "America/New_York": "Eastern Time — New York",
+          "America/Phoenix": "Arizona Time — Phoenix",
+          "America/Puerto_Rico": "Atlantic Time — Puerto Rico",
+          "Pacific/Honolulu": "Hawaii Time — Honolulu",
+          UTC: "UTC",
+        };
+        return labels[zone] || zone.replace(/_/g, " ").replace(/\//g, " / ");
+      }
+      function emailNotificationSettingsMarkup() {
+        const p = S.notificationPrefs || defaultNotificationPreferences();
+        const leadOptions = [0, 5, 15, 30, 60, 120, 1440, 10080, 43200];
+        const isPreset = leadOptions.includes(Number(p.event_lead_minutes));
+        const disabled = !S.notificationSetupReady ? "disabled" : "";
+        return `<section class="notification-settings" aria-labelledby="email-notification-title">
+          <h2 id="email-notification-title">Email notifications</h2>
+          <p class="notification-help">Email is separate from signup verification and uses the email address on your account.</p>
+          ${S.notificationSetupError ? `<p class="notification-status notification-error" role="status">${esc(S.notificationSetupError)}</p>` : ""}
+          <label class="notification-switch"><input id="notif-email-enabled" type="checkbox" ${p.email_enabled ? "checked" : ""} ${disabled}> <span><strong>Turn on email notifications</strong><small>Master switch for reminders and summaries.</small></span></label>
+          <label for="notification-time-zone">Time zone for email times</label>
+          <div class="notification-time-zone-row"><select id="notification-time-zone" ${disabled}>${availableTimeZones().map((zone) => `<option value="${esc(zone)}" ${p.time_zone === zone ? "selected" : ""}>${esc(timeZoneLabel(zone))}</option>`).join("")}</select><button type="button" class="btn alt" onclick="useDeviceTimeZone()" ${disabled}>Use device time zone</button></div>
+          <small class="notification-help">Defaults to Mountain Time for BYU. The device option fills in your browser's time zone.</small>
+          <label class="notification-switch"><input id="notif-events-enabled" type="checkbox" ${p.event_reminders_enabled ? "checked" : ""} ${disabled}> <span><strong>Event reminders</strong><small>Send before each event; you can override the timing on an event.</small></span></label>
+          <label for="notification-event-lead">Default event reminder</label>
+          <div class="notification-fields-row"><select id="notification-event-lead" onchange="toggleNotificationCustomLead(this)" ${disabled}>${leadOptions.map((minutes) => `<option value="${minutes}" ${isPreset && Number(p.event_lead_minutes) === minutes ? "selected" : ""}>${minutes === 0 ? "At event time" : minutes < 60 ? `${minutes} minutes before` : minutes % 1440 === 0 ? `${minutes / 1440} days before` : minutes % 60 === 0 ? `${minutes / 60} hours before` : `${minutes} minutes before`}</option>`).join("")}<option value="custom" ${!isPreset ? "selected" : ""}>Custom minutes</option></select><label id="notification-event-lead-custom-wrap" ${isPreset ? "hidden" : ""}>Custom minutes<input id="notification-event-lead-custom" type="number" min="0" max="43200" step="1" value="${isPreset ? 15 : Number(p.event_lead_minutes)}" aria-label="Custom event reminder minutes" ${disabled}></label></div>
+          <label class="notification-switch"><input id="notif-tasks-enabled" type="checkbox" ${p.task_reminders_enabled ? "checked" : ""} ${disabled}> <span><strong>Task reminders</strong><small>Remind once at the selected time. Skipped tasks are not repeatedly emailed.</small></span></label>
+          <label for="notification-task-time">Default task reminder time</label><input id="notification-task-time" type="time" value="${esc(p.task_reminder_time)}" ${disabled}>
+          <label class="notification-switch"><input id="notif-summary-enabled" type="checkbox" ${p.daily_summary_enabled ? "checked" : ""} ${disabled}> <span><strong>Daily summary</strong><small>Include today's events and unfinished tasks due today or earlier.</small></span></label>
+          <label for="notification-summary-time">Daily summary time</label><input id="notification-summary-time" type="time" value="${esc(p.daily_summary_time)}" ${disabled}>
+          <div class="notification-actions"><button type="button" class="btn" onclick="saveEmailNotificationSettings(this)" ${disabled}>Save email settings</button><button type="button" class="btn alt" onclick="sendNotificationTest(this)" ${!S.notificationSetupReady ? "disabled" : ""}>Send test email</button></div>
+          <p id="notification-settings-status" class="notification-status" role="status" aria-live="polite"></p>
+        </section>`;
+      }
+      function useDeviceTimeZone() {
+        const field = document.getElementById("notification-time-zone");
+        if (!field) return;
+        const zone = Intl.DateTimeFormat().resolvedOptions().timeZone || "America/Denver";
+        if (![...field.options].some((option) => option.value === zone)) {
+          const option = document.createElement("option");
+          option.value = zone;
+          option.textContent = timeZoneLabel(zone);
+          field.add(option);
+        }
+        field.value = zone;
+        const status = document.getElementById("notification-settings-status");
+        if (status) status.textContent = `Device time zone selected: ${zone}. Save to apply it.`;
+      }
+      function toggleNotificationCustomLead(select) {
+        const field = document.getElementById("notification-event-lead-custom-wrap");
+        if (field) field.hidden = select.value !== "custom";
+      }
+      async function saveEmailNotificationSettings(button) {
+        const status = document.getElementById("notification-settings-status");
+        if (!live() || !S.notificationSetupReady) {
+          if (status) status.textContent = "Run the notification database setup before saving these options.";
+          return;
+        }
+        const zone = document.getElementById("notification-time-zone")?.value || "America/Denver";
+        try { new Intl.DateTimeFormat("en-US", { timeZone: zone }).format(new Date()); }
+        catch { if (status) status.textContent = "Choose a valid time zone."; return; }
+        const leadSelect = document.getElementById("notification-event-lead")?.value || "15";
+        const lead = leadSelect === "custom"
+          ? Number(document.getElementById("notification-event-lead-custom")?.value)
+          : Number(leadSelect);
+        if (!Number.isInteger(lead) || lead < 0 || lead > 43200) {
+          if (status) status.textContent = "Custom event reminders must be between 0 and 43,200 minutes.";
+          return;
+        }
+        const next = {
+          user_id: S.uid,
+          email_enabled: !!document.getElementById("notif-email-enabled")?.checked,
+          event_reminders_enabled: !!document.getElementById("notif-events-enabled")?.checked,
+          event_lead_minutes: lead,
+          task_reminders_enabled: !!document.getElementById("notif-tasks-enabled")?.checked,
+          task_reminder_time: document.getElementById("notification-task-time")?.value || "18:00",
+          daily_summary_enabled: !!document.getElementById("notif-summary-enabled")?.checked,
+          daily_summary_time: document.getElementById("notification-summary-time")?.value || "08:00",
+          time_zone: zone,
+          updated_at: new Date().toISOString(),
+        };
+        if (button) { button.disabled = true; button.textContent = "Saving…"; }
+        if (status) status.textContent = "Saving email settings…";
+        try {
+          const { error } = await sb.from("notification_preferences").upsert(next, { onConflict: "user_id" });
+          if (error) throw error;
+          S.notificationPrefs = { ...next };
+          if (status) status.textContent = "Email notification settings saved.";
+        } catch (error) {
+          if (status) status.textContent = "Could not save email settings: " + (error.message || String(error));
+        } finally {
+          if (button?.isConnected) { button.disabled = false; button.textContent = "Save email settings"; }
+        }
+      }
+      async function sendNotificationTest(button) {
+        const status = document.getElementById("notification-settings-status");
+        if (!live() || !S.notificationSetupReady) return;
+        if (button) { button.disabled = true; button.textContent = "Sending…"; }
+        if (status) status.textContent = "Sending a test to your account email…";
+        try {
+          const { data, error } = await sb.functions.invoke("notification-scheduler", { body: { action: "test" } });
+          if (error) {
+            let message = error.message || "The test email could not be sent.";
+            try { const detail = await error.context.json(); if (detail.error) message = detail.error; } catch {}
+            throw new Error(message);
+          }
+          if (status) status.textContent = data?.message || "Test email sent. Check your inbox and spam folder.";
+        } catch (error) {
+          if (status) status.textContent = "Test email failed: " + (error.message || String(error));
+        } finally {
+          if (button?.isConnected) { button.disabled = false; button.textContent = "Send test email"; }
+        }
       }
 
       /* SETTINGS — preferences and existing calendar connections */
       function sett() {
         return shell(
           "Settings",
-          `<div class="sw">Notifications ${tgl("notif")}</div>
+          `<div class="sw">On-page Summary reminders ${tgl("notif")}</div>
+          ${emailNotificationSettingsMarkup()}
           <div class="sw">Default view ${sel(
             "view",
             [
@@ -5462,8 +5755,7 @@ return `
 </p>
 
           <p style="color:var(--mut);font-size:12px">
-            Reminders: homework due within 24 hours and social events
-            within 4 hours show on your Summary page.
+            The on-page Summary reminders above are separate from email reminders.
           </p>
 
           <h2>School calendars</h2>
@@ -6839,7 +7131,6 @@ function r() {
   document.documentElement.dataset.theme = S.set.theme;
   $("#app").dataset.page = h;
   $("#app").innerHTML = f();
-  updateResendButton();
   cbEnhanceAccessibility(h);
   trackActivityPage(h);
 

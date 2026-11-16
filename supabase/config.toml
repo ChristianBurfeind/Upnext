@@ -1,0 +1,8 @@
+# Keep the existing account-deletion function's manual JWT check.
+[functions.delete-account]
+verify_jwt = false
+
+# The notification function verifies either the signed-in user JWT for a test
+# email or the private scheduler header for Cron jobs.
+[functions.notification-scheduler]
+verify_jwt = false
