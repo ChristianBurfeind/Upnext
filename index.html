@@ -2765,8 +2765,8 @@ details li {margin-bottom:8px;}
           <a class="cb-auth-brand" href="#login">UPNEXT</a>
           <span class="cb-auth-orbit" aria-hidden="true"></span>
           <p class="cb-eyebrow">LESS JUGGLING. MORE LIVING.</p>
-          <h2>All your plans.<br>A little more<br><em>possibility.</em></h2>
-          <p>Classes, deadlines, and everything in between. One space to bring your day together.</p>
+          <h2>All your plans.<br> A little more<br><em> possibility.</em></h2>
+          <p>Classes, deadlines, and everything in between. <br> One space to bring your day together.</p>
           <div class="cb-auth-tags"><span>School</span><span>Life</span><span>You</span></div>
           <small>Built for the rhythm of student life.</small>
         </aside>
@@ -2903,7 +2903,6 @@ details li {margin-bottom:8px;}
         AK = "task",
         DR = null,
         PE = false,
-        profileInterestDraft = [],
         LM = "in",
         F = "all",
         Q = "";
@@ -3456,7 +3455,7 @@ details li {margin-bottom:8px;}
           fail(e);
         }
       }
-      async function dbProfile(np, ints) {
+      async function dbProfile(np) {
         if (!live()) return true;
         try {
           const U = M.users;
@@ -3466,7 +3465,6 @@ details li {margin-bottom:8px;}
               .update(
                 mk("users", {
                   name: np.name,
-                  school: np.school,
                   work: np.work,
                   birthDate: np.birthDate || null,
                   age: np.birthDate ? ageFromBirthDate(np.birthDate) : null,
@@ -3476,16 +3474,6 @@ details li {margin-bottom:8px;}
               )
               .eq(U.id, S.uid),
           );
-          const I = M.interests;
-          await q(sb.from(I.t).delete().eq(I.uid, S.uid));
-          if (ints.length)
-            await q(
-              sb
-                .from(I.t)
-                .insert(
-                  ints.map((v) => mk("interests", { uid: S.uid, val: v })),
-                ),
-            );
           S.user = np.name;
           return true;
         } catch (e) {
@@ -4170,7 +4158,6 @@ const newItem = (k) => {
 ${DBERR.length ? `<div class="err">${DBERR.map(esc).join("<br>")}<br>Check the setup guide for missing tables or columns, then reload. If birth_date is missing, run tasks-events-update.sql.</div>` : ""}
 <div class="seg"><a href="#login" class="${c ? "" : "on"}" onclick="LM='in';r()">Log in</a><a href="#login" class="${c ? "on" : ""}" onclick="LM='up';r()">Create account</a></div>
 <form id="auth-form" ${c ? "novalidate" : ""} onsubmit="event.preventDefault();auth()">${c ? '<p class="signup-note">Only Full name, Email address, and Password are required. You can add everything else later in your profile.</p>' : ""}${c ? `<label for="su-name">Full name <span class="required-star" aria-hidden="true">*</span> <small class="required-label">Required</small></label><input id="su-name" type="text" maxlength="50" required autocomplete="name" aria-describedby="su-name-help" oninput="chk()"><small id="su-name-help" class="signup-field-help">Up to 50 characters. Use letters, spaces, hyphens, and apostrophes.</small>
-<label for="su-school">School <small class="optional-label">– Optional</small></label><input id="su-school" type="text" maxlength="40" placeholder="Find campus events" autocomplete="organization" oninput="chk()">
 <label for="su-major">Major <small class="optional-label">– Optional</small></label><input id="su-major" type="text" maxlength="40" placeholder="Find major-related events" oninput="chk()">
 <label for="su-work">Work <small class="optional-label">– Optional</small></label><input id="su-work" type="text" maxlength="40" placeholder="Find career events" oninput="chk()">
 <label for="su-birth">Date of birth <small class="optional-label">– Optional</small></label><small id="su-birth-help" class="signup-field-help">So we can celebrate your birthday!</small>${birthPicker("su-birth", "", "chk()").replace('type="date"', 'type="date" aria-describedby="su-birth-help"')}
@@ -4234,7 +4221,7 @@ ${DBERR.length ? `<div class="err">${DBERR.map(esc).join("<br>")}<br>Check the s
   </p>
 </details>
 <label for="su-gender">Gender <small class="optional-label">– Optional</small></label><select id="su-gender" onchange="chk()"><option value="">Select gender</option><option>Female</option><option>Male</option><option>Non-binary</option><option>Other</option></select>
-<label for="su-interests">Interests <small class="optional-label">– Optional</small></label><input id="su-interests" type="text" maxlength="100" placeholder="Find events you’ll enjoy" oninput="chk()">` : ""}<label for="u">Email address${c ? ' <span class="required-star" aria-hidden="true">*</span> <small class="required-label">Required</small>' : ""}</label><input id="u" type="email" value="${esc(pendingEmail)}" required autocomplete="email" oninput="chk()">
+` : ""}<label for="u">Email address${c ? ' <span class="required-star" aria-hidden="true">*</span> <small class="required-label">Required</small>' : ""}</label><input id="u" type="email" value="${esc(pendingEmail)}" required autocomplete="email" oninput="chk()">
 <label for="pw">Password${c ? ' <span class="required-star" aria-hidden="true">*</span> <small class="required-label">Required</small>' : ""}</label><input id="pw" type="password" required minlength="${c ? 8 : 1}" autocomplete="${c ? "new-password" : "current-password"}" oninput="chk()">
 <label style="display:flex;gap:8px;align-items:center"><input id="st" type="checkbox" ${remember ? "checked" : ""}> Stay logged in</label>
 <div id="er" class="err" role="status" aria-live="polite"></div><button class="btn ${c ? "is-incomplete" : ""}" id="go" ${c ? "" : "disabled"}>${c ? "Create account" : "Log in"}</button></form>
@@ -4265,7 +4252,7 @@ ${!useSB ? "<p>Live login requires your Supabase URL and public key.</p>" : ""}<
         if (!$("#su-name").value.trim()) check("su-name", "Enter your full name.");
         else if ($("#su-name").value.trim().length > 50) check("su-name", "Full name must be 50 characters or fewer.");
         else if (!validSignupName($("#su-name").value)) check("su-name", "Use letters, spaces, hyphens, and apostrophes only.");
-        for (const [id, label, limit] of [["su-school", "School", 40], ["su-major", "Major", 40], ["su-work", "Work", 40], ["su-interests", "Interests", 100]])
+        for (const [id, label, limit] of [["su-major", "Major", 40], ["su-work", "Work", 40]])
           if ($("#" + id).value.length > limit) check(id, label + " must be " + limit + " characters or fewer.");
         if (!$("#u").value.trim()) check("u", "You must fill out Email address before creating an account.");
         else if (!$("#u").validity.valid) check("u", "Enter a valid email address before creating an account.");
@@ -4353,11 +4340,9 @@ ${!useSB ? "<p>Live login requires your Supabase URL and public key.</p>" : ""}<
                     emailRedirectTo: confirmationRedirect,
                     data: {
                       name: $("#su-name").value.trim(),
-                      school: $("#su-school").value.trim(),
                       work: $("#su-work").value.trim(),
                       major: $("#su-major").value.trim(),
                       gender: $("#su-gender").value,
-                      interests: normInterests($("#su-interests").value),
                       canvas_feed_url: $("#su-canvas").value.trim(),
                       learning_suite_feed_url: $("#su-learning-suite").value.trim(),
                       birth_date: $("#su-birth").value || null,
@@ -5431,12 +5416,119 @@ function renderFilteredDiscoveryEvents() {
   results.innerHTML = eventCards;
 }
 
+const discoveryDateFormat = new Intl.DateTimeFormat("en-US", {
+  timeZone: "America/Denver",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  hourCycle: "h23",
+});
+
+function discoveryLocalParts(date) {
+  const parts = Object.fromEntries(discoveryDateFormat.formatToParts(date)
+    .map(({ type, value }) => [type, value]));
+  return {
+    date: parts.year + "-" + parts.month + "-" + parts.day,
+    time: parts.hour + ":" + parts.minute,
+  };
+}
+
+function discoveryEventSlot(event) {
+  if (!event.start_time) return null;
+  const start = new Date(event.start_time);
+  const end = event.end_time ? new Date(event.end_time) : new Date(+start + 3600000);
+  if (!Number.isFinite(+start) || !Number.isFinite(+end) || end <= start) return null;
+  const begins = discoveryLocalParts(start);
+  const finishes = discoveryLocalParts(end);
+  if (begins.date !== finishes.date || finishes.time <= begins.time) return null;
+  return { start, begins, finishes };
+}
+
+function fitsCalendarSlot({ begins, finishes }) {
+  const start = mins(begins.time);
+  const end = mins(finishes.time);
+  return !evs(begins.date).some(item => {
+    if (item.holiday) return false;
+    if (item.allDay || !item.time) return true;
+    const bookedStart = mins(item.time);
+    const bookedEnd = item.end ? mins(item.end) : bookedStart + 60;
+    return start < bookedEnd && bookedStart < end;
+  });
+}
+
+async function loadCalendarSuggestions(view) {
+  if (!S.set.sug || !live() || !S.uid || !["day", "week", "month"].includes(view)) return;
+  const navigation = $("#main-content .nav2");
+  if (!navigation) return;
+
+  const first = view === "month" ? D.slice(0, 7) + "-01" : view === "week" ? wkStart(D) : D;
+  const last = view === "month"
+    ? iso(new Date(pd(first).getFullYear(), pd(first).getMonth() + 1, 1))
+    : ad(first, view === "week" ? 7 : 1);
+  const section = document.createElement("section");
+  section.className = "cb-panel";
+  section.style.marginBottom = "16px";
+  section.setAttribute("aria-labelledby", "calendar-suggestions-heading");
+  section.innerHTML = '<div class="cb-panel-heading"><h2 id="calendar-suggestions-heading">Suggestions for your free time</h2></div><div role="status">Checking for events…</div>';
+  navigation.after(section);
+  const results = section.lastElementChild;
+  const userId = S.uid;
+  const stillVisible = () => section.isConnected && S.uid === userId && S.set.sug;
+
+  try {
+    // Pad the UTC date boundaries, then filter by the same Mountain Time dates
+    // that Discovery uses when it saves a campus event.
+    const { data, error } = await sb.from("discovered_events")
+      .select("id,title,start_time,end_time")
+      .gte("start_time", new Date(Math.max(Date.now(), Date.parse(first))).toISOString())
+      .lt("start_time", ad(last, 1) + "T00:00:00Z")
+      .order("start_time", { ascending: true });
+    if (!stillVisible()) return;
+    if (error) throw error;
+
+    const suggestions = [];
+    for (const event of data || []) {
+      const slot = discoveryEventSlot(event);
+      if (!slot || +slot.start <= Date.now() || slot.begins.date < first ||
+          slot.begins.date >= last || !fitsCalendarSlot(slot)) continue;
+      suggestions.push({ event, slot });
+      if (suggestions.length === 3) break;
+    }
+
+    results.textContent = suggestions.length
+      ? ""
+      : "No upcoming Discovery events fit your schedule in this view.";
+    for (const { event, slot } of suggestions) {
+      const row = document.createElement("div");
+      row.className = "row";
+      row.style.flexWrap = "wrap";
+      row.innerHTML = `<span class="t"><b>${esc(event.title)}</b><small>${L(slot.begins.date, { month: "short", day: "numeric" })} · ${t12(slot.begins.time)} to ${t12(slot.finishes.time)}</small></span><button type="button" class="btn">Add to calendar</button>`;
+      const button = row.lastElementChild;
+      button.addEventListener("click", async () => {
+        if (button.disabled) return;
+        const buttons = [...section.querySelectorAll("button")];
+        buttons.forEach(control => { control.disabled = true; });
+        const saved = await addDiscoveryToCalendar(event.id, true);
+        if (saved && stillVisible()) r();
+        else buttons.forEach(control => { control.disabled = false; });
+      });
+      section.append(row);
+    }
+  } catch (error) {
+    console.warn("Could not load calendar suggestions:", error);
+    if (stillVisible()) results.textContent = "Calendar suggestions are temporarily unavailable.";
+  }
+}
+
 const discoverySaving = new Set();
 
-async function addDiscoveryToCalendar(eventId) {
+async function addDiscoveryToCalendar(eventId, requiresOpenTime = false) {
   if (discoverySaving.has(String(eventId))) return;
 
   discoverySaving.add(String(eventId));
+  const userId = S.uid;
 
   try {
     if (!S.uid) {
@@ -5452,42 +5544,15 @@ async function addDiscoveryToCalendar(eventId) {
 
     if (error) throw error;
 
-    const start = new Date(event.start_time);
-    const end = event.end_time
-      ? new Date(event.end_time)
-      : new Date(start.getTime() + 60 * 60 * 1000);
-
-    if (isNaN(start.getTime())) {
-      throw new Error("This event has an invalid date.");
+    if (S.uid !== userId) return;
+    const slot = discoveryEventSlot(event);
+    if (!slot) {
+      toast("This event needs a valid start and end time on the same day.");
+      return;
     }
-
-    const localParts = (date) => {
-      const parts = new Intl.DateTimeFormat("en-US", {
-        timeZone: "America/Denver",
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-        hourCycle: "h23"
-      }).formatToParts(date);
-
-      const p = {};
-      parts.forEach(part => {
-        p[part.type] = part.value;
-      });
-
-      return {
-        date: p.year + "-" + p.month + "-" + p.day,
-        time: p.hour + ":" + p.minute
-      };
-    };
-
-    const begins = localParts(start);
-    const finishes = localParts(end);
-
-    if (finishes.date !== begins.date) {
-      toast("This event crosses midnight. Add it manually for now.");
+    const { begins, finishes } = slot;
+    if (requiresOpenTime && (+slot.start <= Date.now() || !fitsCalendarSlot(slot))) {
+      toast("That time is no longer open on your calendar.");
       return;
     }
 
@@ -5525,10 +5590,12 @@ async function addDiscoveryToCalendar(eventId) {
       return;
     }
 
+    if (S.uid !== userId) return;
     S.items.push(newEvent);
     save();
 
     toast("Event added to your calendar!");
+    return true;
 
   } catch (error) {
     console.error("Discovery calendar error:", error);
@@ -6299,68 +6366,8 @@ function loadDiscoveryInterests() {
           button.textContent = "Import Canvas calendar";
         }
       }
-      function normInterests(value) {
-        return [...new Set(String(value || "").split(",").map(x => x.trim().toLowerCase()).filter(Boolean))];
-      }
-      function interestChips(items, editable = false) {
-        if (!items.length) return `<span class="profile-age-hint">No interests added yet.</span>`;
-        return items.map((interest, index) => `
-          <span class="int-chip">${esc(interest)}${editable ? `<button type="button" onclick="removeProfileInterest(${index})" aria-label="Remove interest ${esc(interest)}">×</button>` : ""}</span>
-        `).join("");
-      }
-      function renderProfileInterestChips() {
-        const list = $("#p-interest-chips");
-        if (list) list.innerHTML = interestChips(profileInterestDraft, true);
-      }
-      function addProfileInterest() {
-        const input = $("#p-interest-input");
-        const interest = input?.value.trim() || "";
-        if (!interest) {
-          input?.focus();
-          return false;
-        }
-        if (interest.length > 100) {
-          $("#profile-error").textContent = "Each interest must be 100 characters or fewer.";
-          input.focus();
-          return false;
-        }
-        if (profileInterestDraft.some((item) => item.toLowerCase() === interest.toLowerCase())) {
-          $("#profile-error").textContent = "That interest is already on your list.";
-          input.focus();
-          return false;
-        }
-        profileInterestDraft.push(interest);
-        input.value = "";
-        $("#profile-error").textContent = "";
-        renderProfileInterestChips();
-        input.focus();
-        return true;
-      }
-      function profileInterestKeydown(event) {
-        if (event.key === "Enter" || event.key === ",") {
-          event.preventDefault();
-          addProfileInterest();
-        }
-      }
-      function removeProfileInterest(index) {
-        profileInterestDraft.splice(index, 1);
-        $("#profile-error").textContent = "";
-        renderProfileInterestChips();
-      }
-      function interestsEditor() {
-        return `<label for="p-interest-input">Interests</label>
-          <div id="p-interest-chips" class="int-chips" aria-label="Your interests">${interestChips(profileInterestDraft, true)}</div>
-          <div class="int-add">
-            <input id="p-interest-input" type="text" maxlength="100" placeholder="Type an interest" aria-describedby="p-interest-help" onkeydown="profileInterestKeydown(event)">
-            <button type="button" class="add" onclick="addProfileInterest()">Add</button>
-          </div>
-          <small id="p-interest-help" class="profile-age-hint">Add interests one at a time. Press Enter or select Add. Each can be up to 100 characters.</small>`;
-      }
       function birthPicker(id, value, onChange) {
         return `<input id="${esc(id)}" type="date" value="${esc(value || "")}" max="${iso(new Date())}" oninput="${esc(onChange || "")}">`;
-      }
-      function interestsSection() {
-        return `<div class="kv"><span>Interests</span><div class="profile-field-value"><div class="int-chips">${interestChips(S.interests || [])}</div>${fieldPencil("interests", "Interests")}</div></div>`;
       }
       function profilePictureButton() {
         return `<button type="button" class="av profile-photo-button" onclick="openPicture()" aria-label="Change profile picture or avatar" title="Change profile picture or avatar">
@@ -6495,17 +6502,14 @@ function loadDiscoveryInterests() {
       }
       const PROFILE_FIELDS = [
         ["name", "Full name"],
-        ["school", "School"],
         ["work", "Work"],
         ["major", "Major"],
         ["birthDate", "Date of birth"],
         ["age", "Age"],
         ["gender", "Gender"],
-        ["interests", "Interests"],
       ];
       function editProfileField(field) {
         if (!PE) {
-          profileInterestDraft = [...(S.interests || [])];
           PE = true;
           r();
         }
@@ -6553,25 +6557,23 @@ function loadDiscoveryInterests() {
       function prof() {
         const p = S.prof;
         const fields = PROFILE_FIELDS.map(([field, label]) => {
-          if (field === "interests") return PE ? interestsEditor() : interestsSection();
           if (field === "age") {
             if (PE) return "";
             const a = ageFromBirthDate(p.birthDate) ?? p.age;
             return `<div class="kv"><span>${label}</span><b>${esc(a) || "—"}</b></div>`;
           }
-          const value =
-            field === "interests" ? S.interests.join(", ") : p[field];
+          const value = p[field];
           return PE
-            ? `<label for="p-${field}">${label}${field === "interests" ? " (comma-separated)" : ""}</label>
-            ${field === "birthDate" ? birthPicker("p-birthDate", value, "updateAgePreview()") : field === "gender" ? `<select id="p-gender"><option value="">Select…</option>${["Female", "Male", "Non-binary", "Other"].map((g) => `<option ${value === g ? "selected" : ""}>${g}</option>`).join("")}</select>` : `<input id="p-${field}" type="text" ${field === "name" ? 'maxlength="50" autocomplete="name" aria-describedby="p-name-help"' : ["school", "work", "major"].includes(field) ? 'maxlength="40"' : ""} value="${esc(value)}">${field === "name" ? '<small id="p-name-help" class="profile-age-hint">Up to 50 characters. Use letters, spaces, hyphens, and apostrophes.</small>' : ""}`}${field === "birthDate" ? `<small id="profile-age-preview" class="profile-age-hint">${esc(ageDescription(value))}</small><small class="profile-age-hint">Optional. Used to calculate your age and celebrate your birthday.</small>` : ""}`
+            ? `<label for="p-${field}">${label}</label>
+            ${field === "birthDate" ? birthPicker("p-birthDate", value, "updateAgePreview()") : field === "gender" ? `<select id="p-gender"><option value="">Select…</option>${["Female", "Male", "Non-binary", "Other"].map((g) => `<option ${value === g ? "selected" : ""}>${g}</option>`).join("")}</select>` : `<input id="p-${field}" type="text" ${field === "name" ? 'maxlength="50" autocomplete="name" aria-describedby="p-name-help"' : ["work", "major"].includes(field) ? 'maxlength="40"' : ""} value="${esc(value)}">${field === "name" ? '<small id="p-name-help" class="profile-age-hint">Up to 50 characters. Use letters, spaces, hyphens, and apostrophes.</small>' : ""}`}${field === "birthDate" ? `<small id="profile-age-preview" class="profile-age-hint">${esc(ageDescription(value))}</small><small class="profile-age-hint">Optional. Used to calculate your age and celebrate your birthday.</small>` : ""}`
             : `<div class="kv"><span>${label}</span><div class="profile-field-value"><b>${field === "birthDate" ? birthDateDisplay(value) : esc(value) || "—"}</b>${fieldPencil(field, label)}</div></div>`;
         }).join("");
         const body = `${profilePictureButton()}<p class="photo-hint">Click your picture to change it</p>
-          ${PE ? `<form onsubmit="event.preventDefault();saveP()">${fields}<p id="profile-error" class="err" role="status" aria-live="polite"></p><button id="save-profile" class="btn" type="submit">Save changes</button><button class="btn alt" type="button" onclick="PE=false;profileInterestDraft=[];r()">Cancel</button></form>` : fields}
+          ${PE ? `<form onsubmit="event.preventDefault();saveP()">${fields}<p id="profile-error" class="err" role="status" aria-live="polite"></p><button id="save-profile" class="btn" type="submit">Save changes</button><button class="btn alt" type="button" onclick="PE=false;r()">Cancel</button></form>` : fields}
           ${!PE ? `<button class="btn alt" onclick="logout()">Log out</button>` : ""}
           <section class="account-danger"><h2>Delete account</h2><p>Permanently remove your account, profile, tasks, events, settings, and uploaded profile pictures.</p><button type="button" class="btn delete-account-button" onclick="openDeleteAccount()">Delete my account</button></section>`;
         return shell("Profile", body, {
-          left: '<button class="ic" onclick="PE=false;profileInterestDraft=[];go(S.set.view)" aria-label="Back">‹</button>',
+          left: '<button class="ic" onclick="PE=false;go(S.set.view)" aria-label="Back">‹</button>',
           right: "<span></span>",
         });
       }
@@ -6688,7 +6690,7 @@ function loadDiscoveryInterests() {
         }
       }
       async function saveP() {
-        for (const [field, label, limit] of [["name", "Full name", 50], ["school", "School", 40], ["work", "Work", 40], ["major", "Major", 40]]) {
+        for (const [field, label, limit] of [["name", "Full name", 50], ["work", "Work", 40], ["major", "Major", 40]]) {
           const input = $("#p-" + field);
           if (input && input.value.length > limit) {
             $("#profile-error").textContent = label + " must be " + limit + " characters or fewer.";
@@ -6698,7 +6700,7 @@ function loadDiscoveryInterests() {
           }
         }
         const np = {};
-        ["name", "school", "work", "major", "birthDate", "gender"].forEach(
+        ["name", "work", "major", "birthDate", "gender"].forEach(
           (k) => (np[k] = $("#p-" + k).value.trim()),
         );
         if (!$("#p-name").value.trim()) {
@@ -6718,18 +6720,14 @@ function loadDiscoveryInterests() {
             "Choose a valid date of birth that is not in the future.";
           return;
         }
-        if ($("#p-interest-input")?.value.trim() && !addProfileInterest()) return;
-        const ints = profileInterestDraft.map((interest) => interest.trim()).filter(Boolean);
         const button = $("#save-profile");
         if (button?.disabled) return;
         if (button) button.disabled = true;
-        if (!(await dbProfile(np, ints))) {
+        if (!(await dbProfile(np))) {
           if (button) button.disabled = false;
           return;
         }
-        S.prof = np;
-        S.interests = ints;
-        profileInterestDraft = [];
+        S.prof = { ...S.prof, ...np };
         PE = false;
         save();
         toast("Profile saved");
@@ -7266,6 +7264,7 @@ function r() {
   updateResendButton();
   cbEnhanceAccessibility(h);
   trackActivityPage(h);
+  void loadCalendarSuggestions(h);
 
   const hasMobileNavigation = !!$("#app > .nav");
 
