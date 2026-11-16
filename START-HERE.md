@@ -15,7 +15,11 @@ Use the team's existing Supabase project and scheduler tables. Each teammate doe
 
 Follow `DELETE-ACCOUNT-SETUP.md` to deploy the separate server function if it is not already working. SQL alone cannot deploy it. An already working function does not need redeployment for this packaging change.
 
-## 3. Open the frontend
+## 3. Email notifications (optional)
+
+Follow `NOTIFICATIONS-SETUP.md` to add email reminders and daily summaries. This is a separate feature from signup confirmation: do not change Supabase Auth's email settings for it. Email reminders remain off until a user opts in from Settings.
+
+## 4. Open the frontend
 
 1. Keep the team's current `index.html`, including its branding and recent edits.
 2. Set `SUPABASE_URL` to the project's base URL ending in `.supabase.co` and `SUPABASE_ANON_KEY` to its public publishable/anon key. Keep placeholder comparisons in the `configured` block unchanged.
@@ -24,7 +28,7 @@ Follow `DELETE-ACCOUNT-SETUP.md` to deploy the separate server function if it is
 5. Configure Supabase Authentication's Site URL and allowed redirect URLs for your deployed/local addresses. Keep email signup enabled.
 6. Create an account, open the newest confirmation email if confirmation is enabled, then return to the app and log in with your email and password.
 
-## 4. Quick checks
+## 5. Quick checks
 
 - Save profile information and reload to check persistence.
 - Select an avatar or upload a JPEG/PNG/WebP photo up to 5 MB using file selection or drag and drop. Reposition/zoom, then save. Cancel should discard picture changes.
