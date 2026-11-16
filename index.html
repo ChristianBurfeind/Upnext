@@ -1307,7 +1307,7 @@ body, #app { background:#f3f7fd; }
 .mo > div { min-height:94px; border:0; border-right:1px solid #e6ecf5; border-bottom:1px solid #e6ecf5; border-radius:0; text-align:left; padding:9px; background:white; }
 .mo > div:hover { background:#f0f6ff; }
 .mo .td { outline:0; background:#e9f3ff; box-shadow:inset 0 0 0 2px #2365b1; }
-.mo u { background:#dceafd; color:#002e5d; padding:4px 6px; border-radius:5px; }
+.mo u { background:#dceafd!important; color:#002e5d; padding:4px 6px; border-radius:5px; }
 .campus-layout { display:grid; grid-template-columns:minmax(0,1fr) 245px; gap:20px; align-items:start; }
 .campus-side { display:grid; gap:16px; }
 .campus-panel { background:#fff; border:1px solid var(--line); border-radius:14px; padding:18px; box-shadow:0 8px 25px #002e5d0b; }
@@ -2653,7 +2653,7 @@ details li {margin-bottom:8px;}
 .mo > div,.campus-calendar .mo > div {background:var(--card);border-color:var(--line);color:var(--ink);}
 .mo > div:hover,.campus-calendar .mo > div:hover {background:var(--acc);}
 .mo .td,.campus-calendar .mo .td {background:var(--acc);outline:2px solid var(--pri);outline-offset:-2px;box-shadow:none;}
-.mo u {background:var(--acc);color:var(--ink);}
+.mo u {background:var(--acc)!important;color:var(--ink);}
 .wk {gap:10px;}.wk > div {background:var(--card);border:1px solid var(--line);border-radius:12px;}
 .wk > div > b {padding:12px 0;color:var(--ink);}
 .grid {background:var(--card);border:1px solid var(--line);border-radius:12px;}
@@ -2742,7 +2742,7 @@ details li {margin-bottom:8px;}
   .sw {padding:13px;}.sw select {width:125px;}#discovery-interests {grid-template-columns:1fr;}
   .notification-settings {padding:14px;}.notification-time-zone-row {align-items:stretch;flex-direction:column;}.notification-time-zone-row .btn {width:100%;}.notification-fields-row {align-items:stretch;flex-direction:column;}
   #app .main.login.cb-auth {width:calc(100% - 28px);margin:16px auto 30px;grid-template-columns:1fr;min-height:0;border-radius:20px;}
-  .cb-auth-story {padding:26px;}.cb-auth-brand {margin-bottom:30px;font-size:17px;}.cb-auth-story h2 {font-size:38px;letter-spacing:-1.4px;}.cb-auth-story h2 .cb-auth-desktop-break {display:none;}.cb-auth-story h2 {max-width:340px;}
+  .cb-auth-story {padding:26px;}.cb-auth-brand {margin-bottom:30px;font-size:17px;}.cb-auth-story h2 {font-size:38px;letter-spacing:-1.4px;}.cb-auth-story h2 br {display:none;}.cb-auth-story h2 br::after {content:' ';}.cb-auth-story h2 {max-width:340px;}
   .cb-auth-story > p:not(.cb-eyebrow) {font-size:13px;margin-bottom:8px;}.cb-auth-tags,.cb-auth-story small {display:none;}
   .cb-auth-form {padding:28px 24px;}.cb-auth-form h1 {font-size:29px;}.cb-auth-orbit {width:150px;height:150px;right:-75px;top:55px;border-width:30px;}
   #app[data-page="confirm-email"] .login {width:calc(100% - 32px);margin:24px auto;padding:30px 22px;}
@@ -2754,6 +2754,110 @@ details li {margin-bottom:8px;}
 .wk span {opacity:1!important;}
 [data-theme="dark"] .fab {background:#ffab63;color:#172039;}
 [data-theme="dark"] .cb-upcoming-panel {background:#ffab63;}
+
+/* Mobile layout corrections. Kept inside the mobile breakpoint so desktop
+   geometry, accessibility markup, and page behavior remain unchanged. */
+@media (max-width:760px) {
+  #app[data-page="add"] > .main {
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    min-width:0;
+    width:100%;
+  }
+  #app[data-page="add"] > .main > * {
+    box-sizing:border-box;
+    width:100%;
+    max-width:560px;
+    min-width:0;
+  }
+  #app[data-page="add"] > .main input:not([type="checkbox"]):not([type="color"]),
+  #app[data-page="add"] > .main select,
+  #app[data-page="add"] > .main textarea,
+  #app[data-page="add"] > .main .item-reminder-box,
+  #app[data-page="add"] > .main .repeat-days {
+    box-sizing:border-box;
+    width:100%;
+    max-width:100%;
+    min-width:0;
+  }
+  #app[data-page="add"] > .main [style*="display:flex"],
+  #app[data-page="add"] > .main [style*="display:flex"] > * {
+    min-width:0;
+    max-width:100%;
+  }
+
+  #app[data-page="settings"] .notification-settings,
+  #app[data-page="settings"] .notification-settings * {
+    box-sizing:border-box;
+    min-width:0;
+    max-width:100%;
+  }
+  #app[data-page="settings"] .notification-settings {
+    width:100%;
+    padding:14px;
+  }
+  #app[data-page="settings"] .notification-settings input:not([type="checkbox"]),
+  #app[data-page="settings"] .notification-settings select,
+  #app[data-page="settings"] .notification-settings label:not(.notification-switch) {
+    width:100%;
+  }
+  #app[data-page="settings"] .notification-fields-row,
+  #app[data-page="settings"] .notification-time-zone-row,
+  #app[data-page="settings"] .notification-actions {
+    width:100%;
+    min-width:0;
+  }
+  #app[data-page="settings"] .notification-actions {
+    display:grid;
+    grid-template-columns:minmax(0,1fr);
+  }
+  #app[data-page="settings"] .notification-actions .btn {
+    width:100%;
+    white-space:normal;
+  }
+
+  /* Pin the mobile navigation to the screen edge, outside the scroll panel. */
+  #app.mobile-dashboard > .nav {
+    position:fixed;
+    inset:auto 0 0;
+    width:100%;
+    max-width:100%;
+    box-sizing:border-box;
+    border-radius:0;
+    margin:0;
+    padding-bottom:calc(6px + env(safe-area-inset-bottom,0px));
+    transform:none;
+  }
+
+  /* Seven equal, shrinkable tracks keep the complete week visible. */
+  #app.mobile-dashboard .wk {
+    width:100%;
+    min-width:0;
+    grid-template-columns:repeat(7,minmax(0,1fr));
+    gap:2px;
+  }
+  #app.mobile-dashboard .wk > div {
+    box-sizing:border-box;
+    min-width:0;
+    padding:3px 2px;
+  }
+  #app.mobile-dashboard .wk > div > b,
+  #app.mobile-dashboard .wk span {
+    display:block;
+    min-width:0;
+    max-width:100%;
+    overflow-wrap:anywhere;
+  }
+  #app.mobile-dashboard .wk > div > b {
+    padding:8px 0;
+    font-size:10px;
+  }
+  #app.mobile-dashboard .wk span {
+    padding:4px 1px;
+    font-size:10px;
+  }
+}
     </style>
   </head>
   <body>
@@ -2765,8 +2869,8 @@ details li {margin-bottom:8px;}
           <a class="cb-auth-brand" href="#login">UPNEXT</a>
           <span class="cb-auth-orbit" aria-hidden="true"></span>
           <p class="cb-eyebrow">LESS JUGGLING. MORE LIVING.</p>
-          <h2>All your plans.<br> A little more <br class="cb-auth-desktop-break"><em>possibility.</em></h2>
-          <p>Classes, deadlines, and everything in between. <br> One space to bring your day together.</p>
+          <h2>All your plans.<br>A little more<br><em>possibility.</em></h2>
+          <p>Classes, deadlines, and everything in between. One space to bring your day together.</p>
           <div class="cb-auth-tags"><span>School</span><span>Life</span><span>You</span></div>
           <small>Built for the rhythm of student life.</small>
         </aside>
@@ -2903,6 +3007,7 @@ details li {margin-bottom:8px;}
         AK = "task",
         DR = null,
         PE = false,
+        profileInterestDraft = [],
         LM = "in",
         F = "all",
         Q = "";
@@ -3003,7 +3108,6 @@ details li {margin-bottom:8px;}
           date: "Date",
           start: "Start_Time",
           end: "End_Time",
-          color: "event_color",
           allDay: "is_all_day",
           loc: "Location",
           type: "Type",
@@ -3093,10 +3197,6 @@ details li {margin-bottom:8px;}
         const key = typeKey(value);
         return Object.hasOwn(T, key) ? T[key] : [cleanType(value) || "Personal", "#526d91"];
       };
-      const customEventColor = (value) =>
-        typeof value === "string" && /^#[0-9a-f]{6}$/i.test(value) ? value : null;
-      const eventColor = (event) =>
-        customEventColor(event.color) || typeInfo(event.type)[1];
       function typeChoices(query = "") {
         const seen = new Set();
         return [...Object.keys(T), ...(S.customTypes || []), ...S.items.map(i => i.type)]
@@ -3311,7 +3411,6 @@ details li {margin-bottom:8px;}
                     start: it.allDay ? null : ts(it.time),
                     end: it.allDay ? null : ts(it.end),
                     allDay: !!it.allDay,
-                    color: customEventColor(it.color),
                     loc: it.loc || "",
                     type: it.type,
                     pri: +it.pri,
@@ -3455,7 +3554,7 @@ details li {margin-bottom:8px;}
           fail(e);
         }
       }
-      async function dbProfile(np) {
+      async function dbProfile(np, ints) {
         if (!live()) return true;
         try {
           const U = M.users;
@@ -3465,6 +3564,7 @@ details li {margin-bottom:8px;}
               .update(
                 mk("users", {
                   name: np.name,
+                  school: np.school,
                   work: np.work,
                   birthDate: np.birthDate || null,
                   age: np.birthDate ? ageFromBirthDate(np.birthDate) : null,
@@ -3474,6 +3574,16 @@ details li {margin-bottom:8px;}
               )
               .eq(U.id, S.uid),
           );
+          const I = M.interests;
+          await q(sb.from(I.t).delete().eq(I.uid, S.uid));
+          if (ints.length)
+            await q(
+              sb
+                .from(I.t)
+                .insert(
+                  ints.map((v) => mk("interests", { uid: S.uid, val: v })),
+                ),
+            );
           S.user = np.name;
           return true;
         } catch (e) {
@@ -3736,7 +3846,6 @@ details li {margin-bottom:8px;}
             allDay: r[ME.allDay] === true,
             time: tt(r[ME.start]),
             end: tt(r[ME.end]),
-            color: customEventColor(r[ME.color]),
             loc: r[ME.loc] || "",
             type: ty(r[ME.type]),
             pri: readPriority(r[ME.pri]),
@@ -4029,7 +4138,7 @@ function cbIcon(name) {
 function shell(title, body, o = {}) {
   const route = (location.hash || '#summary').slice(1);
   const subtitle = {summary:'A little structure. A lot more possibility.',day:'Make room for what matters.',week:'Your week, with a little breathing room.',month:'See the bigger picture.',todo:'One thing at a time. You have this.',discovery:'Find your next good thing.',settings:'Make this space your own.',profile:'The person behind the plans.',add:'Give your plans a place to land.'}[route] || 'Your day, beautifully in balance.';
-  const links = [['s','summary','Summary','summary'],['c',S.set.view,'Calendar','calendar'],['t','todo','To-Do','todo'],['d','discovery','Discovery','discovery'],['settings','settings','Settings','settings']];
+  const links = [['s','summary','Summary','summary'],['c','day','Calendar','calendar'],['t','todo','To-Do','todo'],['d','discovery','Discovery','discovery'],['settings','settings','Settings','settings']];
   return `<header class="top"><div class="cb-page-heading"><p class="cb-eyebrow">UPNEXT</p><h1>${title}</h1><p class="cb-subtitle">${subtitle}</p></div><div class="cb-top-actions">${o.left || '<a class="ic" href="#settings" aria-label="Open settings">' + cbIcon('settings') + '</a>'}${o.right || `<a class="ic cb-profile-link" href="#profile" aria-label="Open profile">${S.photo ? `<img src="${esc(S.photo)}" alt="">` : profileInitial()}</a>`}</div></header>
     <main id="main-content" class="main" tabindex="-1">${body}</main>
     ${o.fab ? '<button class="fab" onclick="newItem()" aria-label="Add task or event">' + cbIcon('plus') + ' Add new</button>' : ''}
@@ -4085,56 +4194,6 @@ const newItem = (k) => {
       }
       let pendingEmail =
         sessionStorage.getItem("scheduler_pending_email") || "";
-      const confirmationRedirect = "https://christianburfeind.github.io/Upnext/";
-      const resendCooldown = 30_000;
-      const resendDeadlineKey = "scheduler_resend_deadline";
-      let resendDeadline = Number(sessionStorage.getItem(resendDeadlineKey)) || 0;
-      let resendTimer;
-      let resending = false;
-
-      function startResendCooldown() {
-        resendDeadline = Date.now() + resendCooldown;
-        sessionStorage.setItem(resendDeadlineKey, String(resendDeadline));
-      }
-
-      function updateResendButton() {
-        clearTimeout(resendTimer);
-        const button = $("#resend-confirmation");
-        if (!button) return;
-        const seconds = Math.max(0, Math.ceil((resendDeadline - Date.now()) / 1000));
-        button.disabled = resending || seconds > 0 || !useSB || !pendingEmail;
-        button.style.opacity = button.disabled ? "0.65" : "1";
-        button.textContent = resending ? "Sending…" : "Resend confirmation email";
-        $("#resend-countdown").textContent = seconds > 0 ? "Resend available in " + seconds + "s" : "";
-        if (seconds > 0) resendTimer = setTimeout(updateResendButton, 250);
-      }
-
-      async function resendConfirmation() {
-        if (resending || Date.now() < resendDeadline || !pendingEmail || !useSB) return;
-        const email = pendingEmail;
-        const status = $("#resend-status");
-        resending = true;
-        status.textContent = "";
-        updateResendButton();
-        try {
-          const { error } = await sb.auth.resend({
-            type: "signup",
-            email,
-            options: { emailRedirectTo: confirmationRedirect },
-          });
-          if (error) throw error;
-          if (email === pendingEmail) startResendCooldown();
-          status.textContent = "Confirmation email sent. Check your inbox.";
-        } catch (error) {
-          status.textContent = error.status === 429
-            ? "Email sending is temporarily limited. Wait a little longer and try again."
-            : nice(error);
-        } finally {
-          resending = false;
-          updateResendButton();
-        }
-      }
-
       function confirmEmail() {
         return `<main id="main-content" class="main login" tabindex="-1" aria-labelledby="confirm-title">
           <div class="welcome-icon" aria-hidden="true">💌</div>
@@ -4147,17 +4206,15 @@ const newItem = (k) => {
           <button class="btn" onclick="LM='in';go('login');r()">Back to log in</button>
           <button class="btn alt" onclick="LM='up';go('login');r()">Use a different email</button>
           <p class="welcome-copy" style="font-size:13px">Don’t see it? Check your spam or junk folder, and give it a few minutes.</p>
-          <button type="button" id="resend-confirmation" style="border:0;background:transparent;color:var(--pri);font:inherit;font-size:11px;text-decoration:underline;padding:8px;cursor:pointer" disabled onclick="resendConfirmation()">Resend confirmation email</button>
-          <small id="resend-countdown" style="display:block;font-size:10px;color:var(--mut)"></small>
-          <div id="resend-status" role="status" style="font-size:12px"></div>
         </main>`;
       }
       function login() {
         const c = LM === "up";
-        return `<main id="main-content" class="main login cb-auth" tabindex="-1"><aside class="cb-auth-story" aria-label="Welcome to Upnext"><a class="cb-auth-brand" href="#login">UPNEXT</a><span class="cb-auth-orbit" aria-hidden="true"></span><p class="cb-eyebrow">LESS JUGGLING. MORE LIVING.</p><h2>All your plans.<br> A little more <br class="cb-auth-desktop-break"><em>possibility.</em></h2><p>Classes, deadlines, and everything in between. One space to bring your day together.</p><div class="cb-auth-tags"><span>School</span><span>Life</span><span>You</span></div><small>Built for the rhythm of student life.</small></aside><section class="cb-auth-form"><p class="cb-eyebrow">MAKE YOURSELF AT HOME</p><h1>${c ? "Your next chapter." : "Welcome back."}</h1><p class="cb-auth-intro">${c ? "A fresh start for a more balanced day." : "Your plans are ready when you are."}</p>
+        return `<main id="main-content" class="main login cb-auth" tabindex="-1"><aside class="cb-auth-story" aria-label="Welcome to Upnext"><a class="cb-auth-brand" href="#login">UPNEXT</a><span class="cb-auth-orbit" aria-hidden="true"></span><p class="cb-eyebrow">LESS JUGGLING. MORE LIVING.</p><h2>All your plans.<br>A little more<br><em>possibility.</em></h2><p>Classes, deadlines, and everything in between. One space to bring your day together.</p><div class="cb-auth-tags"><span>School</span><span>Life</span><span>You</span></div><small>Built for the rhythm of student life.</small></aside><section class="cb-auth-form"><p class="cb-eyebrow">MAKE YOURSELF AT HOME</p><h1>${c ? "Your next chapter." : "Welcome back."}</h1><p class="cb-auth-intro">${c ? "A fresh start for a more balanced day." : "Your plans are ready when you are."}</p>
 ${DBERR.length ? `<div class="err">${DBERR.map(esc).join("<br>")}<br>Check the setup guide for missing tables or columns, then reload. If birth_date is missing, run tasks-events-update.sql.</div>` : ""}
 <div class="seg"><a href="#login" class="${c ? "" : "on"}" onclick="LM='in';r()">Log in</a><a href="#login" class="${c ? "on" : ""}" onclick="LM='up';r()">Create account</a></div>
 <form id="auth-form" ${c ? "novalidate" : ""} onsubmit="event.preventDefault();auth()">${c ? '<p class="signup-note">Only Full name, Email address, and Password are required. You can add everything else later in your profile.</p>' : ""}${c ? `<label for="su-name">Full name <span class="required-star" aria-hidden="true">*</span> <small class="required-label">Required</small></label><input id="su-name" type="text" maxlength="50" required autocomplete="name" aria-describedby="su-name-help" oninput="chk()"><small id="su-name-help" class="signup-field-help">Up to 50 characters. Use letters, spaces, hyphens, and apostrophes.</small>
+<label for="su-school">School <small class="optional-label">– Optional</small></label><input id="su-school" type="text" maxlength="40" placeholder="Find campus events" autocomplete="organization" oninput="chk()">
 <label for="su-major">Major <small class="optional-label">– Optional</small></label><input id="su-major" type="text" maxlength="40" placeholder="Find major-related events" oninput="chk()">
 <label for="su-work">Work <small class="optional-label">– Optional</small></label><input id="su-work" type="text" maxlength="40" placeholder="Find career events" oninput="chk()">
 <label for="su-birth">Date of birth <small class="optional-label">– Optional</small></label><small id="su-birth-help" class="signup-field-help">So we can celebrate your birthday!</small>${birthPicker("su-birth", "", "chk()").replace('type="date"', 'type="date" aria-describedby="su-birth-help"')}
@@ -4221,7 +4278,7 @@ ${DBERR.length ? `<div class="err">${DBERR.map(esc).join("<br>")}<br>Check the s
   </p>
 </details>
 <label for="su-gender">Gender <small class="optional-label">– Optional</small></label><select id="su-gender" onchange="chk()"><option value="">Select gender</option><option>Female</option><option>Male</option><option>Non-binary</option><option>Other</option></select>
-` : ""}<label for="u">Email address${c ? ' <span class="required-star" aria-hidden="true">*</span> <small class="required-label">Required</small>' : ""}</label><input id="u" type="email" value="${esc(pendingEmail)}" required autocomplete="email" oninput="chk()">
+<label for="su-interests">Interests <small class="optional-label">– Optional</small></label><input id="su-interests" type="text" maxlength="100" placeholder="Find events you’ll enjoy" oninput="chk()">` : ""}<label for="u">Email address${c ? ' <span class="required-star" aria-hidden="true">*</span> <small class="required-label">Required</small>' : ""}</label><input id="u" type="email" value="${esc(pendingEmail)}" required autocomplete="email" oninput="chk()">
 <label for="pw">Password${c ? ' <span class="required-star" aria-hidden="true">*</span> <small class="required-label">Required</small>' : ""}</label><input id="pw" type="password" required minlength="${c ? 8 : 1}" autocomplete="${c ? "new-password" : "current-password"}" oninput="chk()">
 <label style="display:flex;gap:8px;align-items:center"><input id="st" type="checkbox" ${remember ? "checked" : ""}> Stay logged in</label>
 <div id="er" class="err" role="status" aria-live="polite"></div><button class="btn ${c ? "is-incomplete" : ""}" id="go" ${c ? "" : "disabled"}>${c ? "Create account" : "Log in"}</button></form>
@@ -4252,7 +4309,7 @@ ${!useSB ? "<p>Live login requires your Supabase URL and public key.</p>" : ""}<
         if (!$("#su-name").value.trim()) check("su-name", "Enter your full name.");
         else if ($("#su-name").value.trim().length > 50) check("su-name", "Full name must be 50 characters or fewer.");
         else if (!validSignupName($("#su-name").value)) check("su-name", "Use letters, spaces, hyphens, and apostrophes only.");
-        for (const [id, label, limit] of [["su-major", "Major", 40], ["su-work", "Work", 40]])
+        for (const [id, label, limit] of [["su-school", "School", 40], ["su-major", "Major", 40], ["su-work", "Work", 40], ["su-interests", "Interests", 100]])
           if ($("#" + id).value.length > limit) check(id, label + " must be " + limit + " characters or fewer.");
         if (!$("#u").value.trim()) check("u", "You must fill out Email address before creating an account.");
         else if (!$("#u").validity.valid) check("u", "Enter a valid email address before creating an account.");
@@ -4337,12 +4394,14 @@ ${!useSB ? "<p>Live login requires your Supabase URL and public key.</p>" : ""}<
                   email,
                   password,
                   options: {
-                    emailRedirectTo: confirmationRedirect,
+                    emailRedirectTo: "https://christianburfeind.github.io/IS401_CalendarAppProject/",
                     data: {
                       name: $("#su-name").value.trim(),
+                      school: $("#su-school").value.trim(),
                       work: $("#su-work").value.trim(),
                       major: $("#su-major").value.trim(),
                       gender: $("#su-gender").value,
+                      interests: normInterests($("#su-interests").value),
                       canvas_feed_url: $("#su-canvas").value.trim(),
                       learning_suite_feed_url: $("#su-learning-suite").value.trim(),
                       birth_date: $("#su-birth").value || null,
@@ -4356,7 +4415,6 @@ ${!useSB ? "<p>Live login requires your Supabase URL and public key.</p>" : ""}<
           if (result.error) throw result.error;
           if (!result.data.session) {
             pendingEmail = email;
-            startResendCooldown();
             sessionStorage.setItem("scheduler_pending_email", email);
             go("confirm-email");
             r();
@@ -4397,7 +4455,7 @@ ${!useSB ? "<p>Live login requires your Supabase URL and public key.</p>" : ""}<
         return shell('Your day, in focus.', `
           <section class="cb-hero" aria-label="Daily overview"><div class="cb-welcome"><p class="cb-eyebrow">A FRESH PERSPECTIVE</p><h2>Hello, ${esc(firstName)}.</h2><p>${L(TODAY,{weekday:'long',month:'long',day:'numeric',year:'numeric'})}</p><span class="cb-hero-shape" aria-hidden="true"></span></div><div class="cb-stat"><span class="cb-eyebrow">ON YOUR RADAR</span><strong>${pending.length}</strong><span>tasks due today</span><small>${todayEvents.length} events · ${social} social plans</small></div></section>
           <div class="cb-summary-grid"><section class="cb-panel cb-task-panel"><header class="cb-panel-heading"><h2>Tasks due today</h2><span class="cb-count">${pending.length} remaining</span></header><p class="cb-panel-intro">Make progress, one checkbox at a time.</p>${todayTasks.map(trow).join('') || '<div class="cb-empty">A little breathing room.<small>No tasks due today.</small></div>'}<a class="cb-text-link" href="#todo">Open your to-do list <span aria-hidden="true">↗</span></a></section>
-          <section class="cb-panel cb-schedule-panel"><header class="cb-panel-heading"><h2>Today's schedule</h2>${cbIcon('calendar')}</header>${todayEvents.map(evRow).join('') || '<div class="cb-empty">An open canvas.<small>No events scheduled today.</small></div>'}<a class="cb-text-link" href="#${S.set.view}" onclick="D=TODAY">View calendar <span aria-hidden="true">↗</span></a></section>
+          <section class="cb-panel cb-schedule-panel"><header class="cb-panel-heading"><h2>Today's schedule</h2>${cbIcon('calendar')}</header>${todayEvents.map(evRow).join('') || '<div class="cb-empty">An open canvas.<small>No events scheduled today.</small></div>'}<a class="cb-text-link" href="#day" onclick="D=TODAY">View calendar <span aria-hidden="true">↗</span></a></section>
           <section class="cb-panel cb-upcoming-panel"><header class="cb-panel-heading"><h2>Coming up</h2>${cbIcon('todo')}</header>${nextTasks.map(item => `<button class="cb-upcoming-item" type="button" onclick="openEv('${item.id}')"><span>${L(item.date,{weekday:'short',month:'short',day:'numeric'})}</span><strong>${esc(item.title)}</strong></button>`).join('') || '<p class="cb-panel-intro">Your next seven days are clear of tasks.</p>'}</section></div>
           ${reminders.length ? `<section class="cb-panel cb-reminders"><details><summary>Your reminders <span class="cb-count">${reminders.length}</span></summary><p class="cb-panel-intro">School deadlines and social plans coming up soon.</p>${reminders.map(item => `<button class="cb-reminder-item" type="button" onclick="openEv('${item.id}')">${esc(item.title)}<span>${item.kind === 'event' ? 'Starts at ' + t12(item.time) : (item.date === TODAY ? 'Due today' : 'Due tomorrow')}</span></button>`).join('')}</details></section>` : ''}`, {nav:'s',fab:1});
       }
@@ -4433,7 +4491,7 @@ ${!useSB ? "<p>Live login requires your Supabase URL and public key.</p>" : ""}<
               style="
                 top:${((s - startHour * 60) / 60) * 48 + 1}px;
                 height:${Math.max(24, ((en - s) / 60) * 48 - 3)}px;
-                background:${eventColor(e)}
+                background:${e.color || typeInfo(e.type)[1]}
               "
               onclick="openEv('${e.id}')"
             >
@@ -4460,7 +4518,7 @@ ${!useSB ? "<p>Live login requires your Supabase URL and public key.</p>" : ""}<
                         padding:10px 12px;
                         border:0;
                         border-radius:10px;
-                        background:${eventColor(e)};
+                        background:${e.color || typeInfo(e.type)[1]};
                         color:white;
                         text-align:left;
                         font:inherit;
@@ -4543,7 +4601,7 @@ ${!useSB ? "<p>Live login requires your Supabase URL and public key.</p>" : ""}<
                     .join("")}<hr>${evs(d)
                     .map(
                       (e) =>
-                        `<span style="background:${eventColor(e)}" onclick="openEv('${e.id}')">${e.allDay ? "" : t12(e.time) + "<br>"}${esc(e.title)}</span>`,
+                        `<span style="background:${typeInfo(e.type)[1]}" onclick="openEv('${e.id}')">${e.allDay ? "" : t12(e.time) + "<br>"}${esc(e.title)}</span>`,
                     )
                     .join("")}</div>`,
               )
@@ -4576,7 +4634,7 @@ ${!useSB ? "<p>Live login requires your Supabase URL and public key.</p>" : ""}<
                   .slice(0, 3)
                   .map(
                     (i) =>
-                      `<u ${i.kind === "event" && customEventColor(i.color) ? `class="custom-event-color" style="background:${eventColor(i)}"` : ""}>${esc(i.title)}</u>`,
+                      `<u style="background:${typeInfo(i.type)[1]}">${esc(i.title)}</u>`,
                   )
                   .join(
                     "",
@@ -4887,8 +4945,7 @@ ${ev ? `
     <input
       id="f-color"
       type="color"
-      value="${eventColor(DR)}"
-      oninput="DR.color=this.value"
+      value="${DR.color || typeInfo(DR.type)[1]}"
       style="width:55px;height:40px;padding:3px;cursor:pointer"
     >
     <span>Choose a custom event color</span>
@@ -4921,6 +4978,7 @@ ${S.notificationSetupReady ? itemReminderFields(ev) : `<p class="notification-he
           end: g("end") ?? DR.end,
           lloc: g("loc") ?? DR.loc,
           type: g("type") ?? DR.type,
+          color: g("color") ?? DR.color,
           pri: g("pri") != null ? Number(g("pri")) : DR.pri,
           desc: g("desc") ?? DR.desc,
           repeatFrequency: g("repeat") === "none" ? null : g("repeat") ?? DR.repeatFrequency ?? null,
@@ -5170,24 +5228,7 @@ ${i.holiday ? '<p class="photo-hint">Automatically added U.S. federal holiday</p
           r();
         } finally { itemBusy.delete(id); }
       }
-
-let discoveryEvents = [];
-let discoveryActiveFilter = "all";
-
-function filterDiscovery(category) {
-  discoveryActiveFilter = category;
-
-  document.querySelectorAll(".discovery-filter").forEach(button => {
-    button.classList.toggle(
-      "active",
-      button.textContent.trim().toLowerCase() ===
-        (category === "all" ? "all events" : category)
-    );
-  });
-
-  renderFilteredDiscoveryEvents();
-}
-
+      
 function disc() {
   const eventCards = `
     <div id="discovery-event-results">
@@ -5236,29 +5277,12 @@ function disc() {
 <div id="discovery-ai-results"></div>
 
 
-        
-<div class="discovery-filters">
-  <button class="discovery-filter active"
-    onclick="filterDiscovery('all')">
-    All Events
-  </button>
-
-  <button class="discovery-filter"
-    onclick="filterDiscovery('sports')">
-    Sports
-  </button>
-
-  <button class="discovery-filter"
-    onclick="filterDiscovery('career')">
-    Career
-  </button>
-
-  <button class="discovery-filter"
-    onclick="filterDiscovery('social')">
-    Social
-  </button>
-</div>
-
+        <div class="discovery-filters">
+          <span class="discovery-filter active">All Events</span>
+          <span class="discovery-filter">Sports</span>
+          <span class="discovery-filter">Career</span>
+          <span class="discovery-filter">Social</span>
+        </div>
 
         <div class="discovery-section-heading">
           <h3>Upcoming BYU Events</h3>
@@ -5276,9 +5300,11 @@ function disc() {
 }
 
 
-
+// Fetch real BYU events from Supabase.
 async function loadDiscoveryEvents() {
-  const results = document.getElementById("discovery-event-results");
+  const results = document.getElementById(
+    "discovery-event-results"
+  );
 
   if (!results) return;
 
@@ -5292,14 +5318,79 @@ async function loadDiscoveryEvents() {
 
     if (error) throw error;
 
-    // Stop if the user navigated away.
+    // Stop if the user has navigated away.
     if (!results.isConnected) return;
 
-    // Store events so filters can use them.
-    discoveryEvents = data || [];
+    if (!data || data.length === 0) {
+      results.innerHTML = `
+        <p>No upcoming BYU events are available.</p>
+      `;
+      return;
+    }
 
-    // Display events using the selected filter.
-    renderFilteredDiscoveryEvents();
+    const eventCards = data.map((event) => {
+      const start = new Date(event.start_time);
+
+      const date = start.toLocaleDateString("en-US", {
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+        timeZone: "America/Denver"
+      });
+
+      const time = start.toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+        timeZone: "America/Denver"
+      });
+
+      const category = event.category || "Student Life";
+
+      return `
+        <div class="discovery-card">
+          <div class="discovery-card-top">
+            <span class="discovery-category"
+              style="background:#2563eb">
+              ${esc(category)}
+            </span>
+            <span class="discovery-match">
+              ✨ BYU Event
+            </span>
+          </div>
+
+          <h3>${esc(event.title)}</h3>
+
+          <p>📅 ${esc(date)} · ${esc(time)}</p>
+          <p>📍 ${esc(event.location || "BYU Campus")}</p>
+
+          <p class="discovery-description">
+            ${esc(event.description || "View event details for more information.")}
+          </p>
+
+          ${event.source_url ? `
+            <a
+              class="btn"
+              href="${esc(event.source_url)}"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              View Event Details
+            </a>
+          ` : ""}
+
+          
+            <button
+              class="btn"
+              onclick="addDiscoveryToCalendar('${event.id}')"
+              >
+              + Add to Calendar
+            </button>
+
+        </div>
+      `;
+    }).join("");
+
+    results.innerHTML = eventCards;
 
   } catch (error) {
     console.error("Error loading Discovery events:", error);
@@ -5312,223 +5403,12 @@ async function loadDiscoveryEvents() {
   }
 }
 
-function renderFilteredDiscoveryEvents() {
-  const results = document.getElementById("discovery-event-results");
-
-  if (!results) return;
-
-  const filtered = discoveryEvents.filter((event) => {
-    if (discoveryActiveFilter === "all") return true;
-
-    const category = (event.category || "").toLowerCase();
-
-    const searchText = [
-      event.title || "",
-      event.description || "",
-      event.category || ""
-    ].join(" ").toLowerCase();
-
-    if (discoveryActiveFilter === "sports") {
-      return /sport|basketball|football|soccer|volleyball|baseball|tennis|athletic|game|intramural/.test(searchText);
-    }
-
-    if (discoveryActiveFilter === "career") {
-      return /career|network|internship|job|recruit|employer|professional|resume|résumé|workshop/.test(searchText);
-    }
-
-    if (discoveryActiveFilter === "social") {
-      return /social|student life|fhe|party|dance|game night|activity|meetup|festival/.test(searchText);
-    }
-
-    return category === discoveryActiveFilter;
-  });
-
-  if (filtered.length === 0) {
-    results.innerHTML = `
-      <div class="discovery-card">
-        <p>No upcoming events match this filter.</p>
-        <p>Try another category or check back later.</p>
-      </div>
-    `;
-    return;
-  }
-
-  const eventCards = filtered.map((event) => {
-    const start = new Date(event.start_time);
-
-    const date = start.toLocaleDateString("en-US", {
-      weekday: "short",
-      month: "short",
-      day: "numeric",
-      timeZone: "America/Denver"
-    });
-
-    const time = start.toLocaleTimeString("en-US", {
-      hour: "numeric",
-      minute: "2-digit",
-      timeZone: "America/Denver"
-    });
-
-    const category = event.category || "Student Life";
-
-    return `
-      <div class="discovery-card">
-        <div class="discovery-card-top">
-          <span class="discovery-category"
-            style="background:#2563eb">
-            ${esc(category)}
-          </span>
-          <span class="discovery-match">
-            ✨ BYU Event
-          </span>
-        </div>
-
-        <h3>${esc(event.title)}</h3>
-
-        <p>📅 ${esc(date)} · ${esc(time)}</p>
-        <p>📍 ${esc(event.location || "BYU Campus")}</p>
-
-        <p class="discovery-description">
-          ${esc(event.description || "View event details for more information.")}
-        </p>
-
-        ${event.source_url ? `
-          <a
-            class="btn"
-            href="${esc(event.source_url)}"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            View Event Details
-          </a>
-        ` : ""}
-
-        <button
-          class="btn"
-          onclick="addDiscoveryToCalendar('${event.id}')"
-        >
-          + Add to Calendar
-        </button>
-      </div>
-    `;
-  }).join("");
-
-  results.innerHTML = eventCards;
-}
-
-const discoveryDateFormat = new Intl.DateTimeFormat("en-US", {
-  timeZone: "America/Denver",
-  year: "numeric",
-  month: "2-digit",
-  day: "2-digit",
-  hour: "2-digit",
-  minute: "2-digit",
-  hourCycle: "h23",
-});
-
-function discoveryLocalParts(date) {
-  const parts = Object.fromEntries(discoveryDateFormat.formatToParts(date)
-    .map(({ type, value }) => [type, value]));
-  return {
-    date: parts.year + "-" + parts.month + "-" + parts.day,
-    time: parts.hour + ":" + parts.minute,
-  };
-}
-
-function discoveryEventSlot(event) {
-  if (!event.start_time) return null;
-  const start = new Date(event.start_time);
-  const end = event.end_time ? new Date(event.end_time) : new Date(+start + 3600000);
-  if (!Number.isFinite(+start) || !Number.isFinite(+end) || end <= start) return null;
-  const begins = discoveryLocalParts(start);
-  const finishes = discoveryLocalParts(end);
-  if (begins.date !== finishes.date || finishes.time <= begins.time) return null;
-  return { start, begins, finishes };
-}
-
-function fitsCalendarSlot({ begins, finishes }) {
-  const start = mins(begins.time);
-  const end = mins(finishes.time);
-  return !evs(begins.date).some(item => {
-    if (item.holiday) return false;
-    if (item.allDay || !item.time) return true;
-    const bookedStart = mins(item.time);
-    const bookedEnd = item.end ? mins(item.end) : bookedStart + 60;
-    return start < bookedEnd && bookedStart < end;
-  });
-}
-
-async function loadCalendarSuggestions(view) {
-  if (!S.set.sug || !live() || !S.uid || !["day", "week", "month"].includes(view)) return;
-  const navigation = $("#main-content .nav2");
-  if (!navigation) return;
-
-  const first = view === "month" ? D.slice(0, 7) + "-01" : view === "week" ? wkStart(D) : D;
-  const last = view === "month"
-    ? iso(new Date(pd(first).getFullYear(), pd(first).getMonth() + 1, 1))
-    : ad(first, view === "week" ? 7 : 1);
-  const section = document.createElement("section");
-  section.className = "cb-panel";
-  section.style.marginBottom = "16px";
-  section.setAttribute("aria-labelledby", "calendar-suggestions-heading");
-  section.innerHTML = '<div class="cb-panel-heading"><h2 id="calendar-suggestions-heading">Suggestions for your free time</h2></div><div role="status">Checking for events…</div>';
-  navigation.after(section);
-  const results = section.lastElementChild;
-  const userId = S.uid;
-  const stillVisible = () => section.isConnected && S.uid === userId && S.set.sug;
-
-  try {
-    // Pad the UTC date boundaries, then filter by the same Mountain Time dates
-    // that Discovery uses when it saves a campus event.
-    const { data, error } = await sb.from("discovered_events")
-      .select("id,title,start_time,end_time")
-      .gte("start_time", new Date(Math.max(Date.now(), Date.parse(first))).toISOString())
-      .lt("start_time", ad(last, 1) + "T00:00:00Z")
-      .order("start_time", { ascending: true });
-    if (!stillVisible()) return;
-    if (error) throw error;
-
-    const suggestions = [];
-    for (const event of data || []) {
-      const slot = discoveryEventSlot(event);
-      if (!slot || +slot.start <= Date.now() || slot.begins.date < first ||
-          slot.begins.date >= last || !fitsCalendarSlot(slot)) continue;
-      suggestions.push({ event, slot });
-      if (suggestions.length === 3) break;
-    }
-
-    results.textContent = suggestions.length
-      ? ""
-      : "No upcoming Discovery events fit your schedule in this view.";
-    for (const { event, slot } of suggestions) {
-      const row = document.createElement("div");
-      row.className = "row";
-      row.style.flexWrap = "wrap";
-      row.innerHTML = `<span class="t"><b>${esc(event.title)}</b><small>${L(slot.begins.date, { month: "short", day: "numeric" })} · ${t12(slot.begins.time)} to ${t12(slot.finishes.time)}</small></span><button type="button" class="btn">Add to calendar</button>`;
-      const button = row.lastElementChild;
-      button.addEventListener("click", async () => {
-        if (button.disabled) return;
-        const buttons = [...section.querySelectorAll("button")];
-        buttons.forEach(control => { control.disabled = true; });
-        const saved = await addDiscoveryToCalendar(event.id, true);
-        if (saved && stillVisible()) r();
-        else buttons.forEach(control => { control.disabled = false; });
-      });
-      section.append(row);
-    }
-  } catch (error) {
-    console.warn("Could not load calendar suggestions:", error);
-    if (stillVisible()) results.textContent = "Calendar suggestions are temporarily unavailable.";
-  }
-}
-
 const discoverySaving = new Set();
 
-async function addDiscoveryToCalendar(eventId, requiresOpenTime = false) {
+async function addDiscoveryToCalendar(eventId) {
   if (discoverySaving.has(String(eventId))) return;
 
   discoverySaving.add(String(eventId));
-  const userId = S.uid;
 
   try {
     if (!S.uid) {
@@ -5544,15 +5424,42 @@ async function addDiscoveryToCalendar(eventId, requiresOpenTime = false) {
 
     if (error) throw error;
 
-    if (S.uid !== userId) return;
-    const slot = discoveryEventSlot(event);
-    if (!slot) {
-      toast("This event needs a valid start and end time on the same day.");
-      return;
+    const start = new Date(event.start_time);
+    const end = event.end_time
+      ? new Date(event.end_time)
+      : new Date(start.getTime() + 60 * 60 * 1000);
+
+    if (isNaN(start.getTime())) {
+      throw new Error("This event has an invalid date.");
     }
-    const { begins, finishes } = slot;
-    if (requiresOpenTime && (+slot.start <= Date.now() || !fitsCalendarSlot(slot))) {
-      toast("That time is no longer open on your calendar.");
+
+    const localParts = (date) => {
+      const parts = new Intl.DateTimeFormat("en-US", {
+        timeZone: "America/Denver",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        hourCycle: "h23"
+      }).formatToParts(date);
+
+      const p = {};
+      parts.forEach(part => {
+        p[part.type] = part.value;
+      });
+
+      return {
+        date: p.year + "-" + p.month + "-" + p.day,
+        time: p.hour + ":" + p.minute
+      };
+    };
+
+    const begins = localParts(start);
+    const finishes = localParts(end);
+
+    if (finishes.date !== begins.date) {
+      toast("This event crosses midnight. Add it manually for now.");
       return;
     }
 
@@ -5590,12 +5497,10 @@ async function addDiscoveryToCalendar(eventId, requiresOpenTime = false) {
       return;
     }
 
-    if (S.uid !== userId) return;
     S.items.push(newEvent);
     save();
 
     toast("Event added to your calendar!");
-    return true;
 
   } catch (error) {
     console.error("Discovery calendar error:", error);
@@ -6366,8 +6271,68 @@ function loadDiscoveryInterests() {
           button.textContent = "Import Canvas calendar";
         }
       }
+      function normInterests(value) {
+        return [...new Set(String(value || "").split(",").map(x => x.trim().toLowerCase()).filter(Boolean))];
+      }
+      function interestChips(items, editable = false) {
+        if (!items.length) return `<span class="profile-age-hint">No interests added yet.</span>`;
+        return items.map((interest, index) => `
+          <span class="int-chip">${esc(interest)}${editable ? `<button type="button" onclick="removeProfileInterest(${index})" aria-label="Remove interest ${esc(interest)}">×</button>` : ""}</span>
+        `).join("");
+      }
+      function renderProfileInterestChips() {
+        const list = $("#p-interest-chips");
+        if (list) list.innerHTML = interestChips(profileInterestDraft, true);
+      }
+      function addProfileInterest() {
+        const input = $("#p-interest-input");
+        const interest = input?.value.trim() || "";
+        if (!interest) {
+          input?.focus();
+          return false;
+        }
+        if (interest.length > 100) {
+          $("#profile-error").textContent = "Each interest must be 100 characters or fewer.";
+          input.focus();
+          return false;
+        }
+        if (profileInterestDraft.some((item) => item.toLowerCase() === interest.toLowerCase())) {
+          $("#profile-error").textContent = "That interest is already on your list.";
+          input.focus();
+          return false;
+        }
+        profileInterestDraft.push(interest);
+        input.value = "";
+        $("#profile-error").textContent = "";
+        renderProfileInterestChips();
+        input.focus();
+        return true;
+      }
+      function profileInterestKeydown(event) {
+        if (event.key === "Enter" || event.key === ",") {
+          event.preventDefault();
+          addProfileInterest();
+        }
+      }
+      function removeProfileInterest(index) {
+        profileInterestDraft.splice(index, 1);
+        $("#profile-error").textContent = "";
+        renderProfileInterestChips();
+      }
+      function interestsEditor() {
+        return `<label for="p-interest-input">Interests</label>
+          <div id="p-interest-chips" class="int-chips" aria-label="Your interests">${interestChips(profileInterestDraft, true)}</div>
+          <div class="int-add">
+            <input id="p-interest-input" type="text" maxlength="100" placeholder="Type an interest" aria-describedby="p-interest-help" onkeydown="profileInterestKeydown(event)">
+            <button type="button" class="add" onclick="addProfileInterest()">Add</button>
+          </div>
+          <small id="p-interest-help" class="profile-age-hint">Add interests one at a time. Press Enter or select Add. Each can be up to 100 characters.</small>`;
+      }
       function birthPicker(id, value, onChange) {
         return `<input id="${esc(id)}" type="date" value="${esc(value || "")}" max="${iso(new Date())}" oninput="${esc(onChange || "")}">`;
+      }
+      function interestsSection() {
+        return `<div class="kv"><span>Interests</span><div class="profile-field-value"><div class="int-chips">${interestChips(S.interests || [])}</div>${fieldPencil("interests", "Interests")}</div></div>`;
       }
       function profilePictureButton() {
         return `<button type="button" class="av profile-photo-button" onclick="openPicture()" aria-label="Change profile picture or avatar" title="Change profile picture or avatar">
@@ -6502,14 +6467,17 @@ function loadDiscoveryInterests() {
       }
       const PROFILE_FIELDS = [
         ["name", "Full name"],
+        ["school", "School"],
         ["work", "Work"],
         ["major", "Major"],
         ["birthDate", "Date of birth"],
         ["age", "Age"],
         ["gender", "Gender"],
+        ["interests", "Interests"],
       ];
       function editProfileField(field) {
         if (!PE) {
+          profileInterestDraft = [...(S.interests || [])];
           PE = true;
           r();
         }
@@ -6557,23 +6525,25 @@ function loadDiscoveryInterests() {
       function prof() {
         const p = S.prof;
         const fields = PROFILE_FIELDS.map(([field, label]) => {
+          if (field === "interests") return PE ? interestsEditor() : interestsSection();
           if (field === "age") {
             if (PE) return "";
             const a = ageFromBirthDate(p.birthDate) ?? p.age;
             return `<div class="kv"><span>${label}</span><b>${esc(a) || "—"}</b></div>`;
           }
-          const value = p[field];
+          const value =
+            field === "interests" ? S.interests.join(", ") : p[field];
           return PE
-            ? `<label for="p-${field}">${label}</label>
-            ${field === "birthDate" ? birthPicker("p-birthDate", value, "updateAgePreview()") : field === "gender" ? `<select id="p-gender"><option value="">Select…</option>${["Female", "Male", "Non-binary", "Other"].map((g) => `<option ${value === g ? "selected" : ""}>${g}</option>`).join("")}</select>` : `<input id="p-${field}" type="text" ${field === "name" ? 'maxlength="50" autocomplete="name" aria-describedby="p-name-help"' : ["work", "major"].includes(field) ? 'maxlength="40"' : ""} value="${esc(value)}">${field === "name" ? '<small id="p-name-help" class="profile-age-hint">Up to 50 characters. Use letters, spaces, hyphens, and apostrophes.</small>' : ""}`}${field === "birthDate" ? `<small id="profile-age-preview" class="profile-age-hint">${esc(ageDescription(value))}</small><small class="profile-age-hint">Optional. Used to calculate your age and celebrate your birthday.</small>` : ""}`
+            ? `<label for="p-${field}">${label}${field === "interests" ? " (comma-separated)" : ""}</label>
+            ${field === "birthDate" ? birthPicker("p-birthDate", value, "updateAgePreview()") : field === "gender" ? `<select id="p-gender"><option value="">Select…</option>${["Female", "Male", "Non-binary", "Other"].map((g) => `<option ${value === g ? "selected" : ""}>${g}</option>`).join("")}</select>` : `<input id="p-${field}" type="text" ${field === "name" ? 'maxlength="50" autocomplete="name" aria-describedby="p-name-help"' : ["school", "work", "major"].includes(field) ? 'maxlength="40"' : ""} value="${esc(value)}">${field === "name" ? '<small id="p-name-help" class="profile-age-hint">Up to 50 characters. Use letters, spaces, hyphens, and apostrophes.</small>' : ""}`}${field === "birthDate" ? `<small id="profile-age-preview" class="profile-age-hint">${esc(ageDescription(value))}</small><small class="profile-age-hint">Optional. Used to calculate your age and celebrate your birthday.</small>` : ""}`
             : `<div class="kv"><span>${label}</span><div class="profile-field-value"><b>${field === "birthDate" ? birthDateDisplay(value) : esc(value) || "—"}</b>${fieldPencil(field, label)}</div></div>`;
         }).join("");
         const body = `${profilePictureButton()}<p class="photo-hint">Click your picture to change it</p>
-          ${PE ? `<form onsubmit="event.preventDefault();saveP()">${fields}<p id="profile-error" class="err" role="status" aria-live="polite"></p><button id="save-profile" class="btn" type="submit">Save changes</button><button class="btn alt" type="button" onclick="PE=false;r()">Cancel</button></form>` : fields}
+          ${PE ? `<form onsubmit="event.preventDefault();saveP()">${fields}<p id="profile-error" class="err" role="status" aria-live="polite"></p><button id="save-profile" class="btn" type="submit">Save changes</button><button class="btn alt" type="button" onclick="PE=false;profileInterestDraft=[];r()">Cancel</button></form>` : fields}
           ${!PE ? `<button class="btn alt" onclick="logout()">Log out</button>` : ""}
           <section class="account-danger"><h2>Delete account</h2><p>Permanently remove your account, profile, tasks, events, settings, and uploaded profile pictures.</p><button type="button" class="btn delete-account-button" onclick="openDeleteAccount()">Delete my account</button></section>`;
         return shell("Profile", body, {
-          left: '<button class="ic" onclick="PE=false;go(S.set.view)" aria-label="Back">‹</button>',
+          left: '<button class="ic" onclick="PE=false;profileInterestDraft=[];go(S.set.view)" aria-label="Back">‹</button>',
           right: "<span></span>",
         });
       }
@@ -6690,7 +6660,7 @@ function loadDiscoveryInterests() {
         }
       }
       async function saveP() {
-        for (const [field, label, limit] of [["name", "Full name", 50], ["work", "Work", 40], ["major", "Major", 40]]) {
+        for (const [field, label, limit] of [["name", "Full name", 50], ["school", "School", 40], ["work", "Work", 40], ["major", "Major", 40]]) {
           const input = $("#p-" + field);
           if (input && input.value.length > limit) {
             $("#profile-error").textContent = label + " must be " + limit + " characters or fewer.";
@@ -6700,7 +6670,7 @@ function loadDiscoveryInterests() {
           }
         }
         const np = {};
-        ["name", "work", "major", "birthDate", "gender"].forEach(
+        ["name", "school", "work", "major", "birthDate", "gender"].forEach(
           (k) => (np[k] = $("#p-" + k).value.trim()),
         );
         if (!$("#p-name").value.trim()) {
@@ -6720,14 +6690,18 @@ function loadDiscoveryInterests() {
             "Choose a valid date of birth that is not in the future.";
           return;
         }
+        if ($("#p-interest-input")?.value.trim() && !addProfileInterest()) return;
+        const ints = profileInterestDraft.map((interest) => interest.trim()).filter(Boolean);
         const button = $("#save-profile");
         if (button?.disabled) return;
         if (button) button.disabled = true;
-        if (!(await dbProfile(np))) {
+        if (!(await dbProfile(np, ints))) {
           if (button) button.disabled = false;
           return;
         }
-        S.prof = { ...S.prof, ...np };
+        S.prof = np;
+        S.interests = ints;
+        profileInterestDraft = [];
         PE = false;
         save();
         toast("Profile saved");
@@ -7211,7 +7185,7 @@ function loadDiscoveryInterests() {
 /* Accessibility enhancements for legacy inline click targets. */
 function cbEnhanceAccessibility(route) {
   // Contrast adapts to custom event colors without changing the saved color.
-  document.querySelectorAll('.ev, .wk span[onclick], .mo .custom-event-color, [style*="background"][onclick]').forEach(el => {
+  document.querySelectorAll('.ev, .wk span[onclick], [style*="background"][onclick]').forEach(el => {
     const rgb = getComputedStyle(el).backgroundColor.match(/\d+(?:\.\d+)?/g);
     if (!rgb || rgb.length < 3 || (rgb.length > 3 && Number(rgb[3]) === 0)) return;
     const linear = rgb.slice(0,3).map(v => {
@@ -7261,10 +7235,8 @@ function r() {
   document.documentElement.dataset.theme = S.set.theme;
   $("#app").dataset.page = h;
   $("#app").innerHTML = f();
-  updateResendButton();
   cbEnhanceAccessibility(h);
   trackActivityPage(h);
-  void loadCalendarSuggestions(h);
 
   const hasMobileNavigation = !!$("#app > .nav");
 
@@ -7284,10 +7256,9 @@ function r() {
   // NEW: Load real BYU events when Discovery opens.
   
   // Load real BYU events when Discovery opens.
- if (h === "discovery") {
-  discoveryActiveFilter = "all";
-  loadDiscoveryEvents();
-}
+  if (h === "discovery") {
+    loadDiscoveryEvents();
+  }
 
   // Restore saved AI interests when Settings opens.
   if (h === "settings") {
