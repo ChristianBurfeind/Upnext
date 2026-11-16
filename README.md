@@ -531,3 +531,15 @@ Exported constraints:
 
 - `profiles_pkey`: `PRIMARY KEY (user_id)`
 - `scheduler_birth_date_not_future`: `CHECK (birth_date IS NULL OR birth_date <= CURRENT_DATE) NOT VALID`
+
+## Database ERD
+
+![Upnext database ERD](erd.png)
+
+## Level 0 Data Flow Diagram
+
+![Level 0 Data Flow Diagram](level0.png)
+
+## Level 1 Data Flow Diagram
+
+![Level 1 Data Flow Diagram](level1.png)
