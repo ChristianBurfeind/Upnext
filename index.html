@@ -2742,7 +2742,7 @@ details li {margin-bottom:8px;}
   .sw {padding:13px;}.sw select {width:125px;}#discovery-interests {grid-template-columns:1fr;}
   .notification-settings {padding:14px;}.notification-time-zone-row {align-items:stretch;flex-direction:column;}.notification-time-zone-row .btn {width:100%;}.notification-fields-row {align-items:stretch;flex-direction:column;}
   #app .main.login.cb-auth {width:calc(100% - 28px);margin:16px auto 30px;grid-template-columns:1fr;min-height:0;border-radius:20px;}
-  .cb-auth-story {padding:26px;}.cb-auth-brand {margin-bottom:30px;font-size:17px;}.cb-auth-story h2 {font-size:38px;letter-spacing:-1.4px;}.cb-auth-story h2 br {display:none;}.cb-auth-story h2 br::after {content:' ';}.cb-auth-story h2 {max-width:340px;}
+  .cb-auth-story {padding:26px;}.cb-auth-brand {margin-bottom:30px;font-size:17px;}.cb-auth-story h2 {font-size:38px;letter-spacing:-1.4px;}.cb-auth-story h2 .cb-auth-desktop-break {display:none;}.cb-auth-story h2 {max-width:340px;}
   .cb-auth-story > p:not(.cb-eyebrow) {font-size:13px;margin-bottom:8px;}.cb-auth-tags,.cb-auth-story small {display:none;}
   .cb-auth-form {padding:28px 24px;}.cb-auth-form h1 {font-size:29px;}.cb-auth-orbit {width:150px;height:150px;right:-75px;top:55px;border-width:30px;}
   #app[data-page="confirm-email"] .login {width:calc(100% - 32px);margin:24px auto;padding:30px 22px;}
@@ -2765,7 +2765,7 @@ details li {margin-bottom:8px;}
           <a class="cb-auth-brand" href="#login">UPNEXT</a>
           <span class="cb-auth-orbit" aria-hidden="true"></span>
           <p class="cb-eyebrow">LESS JUGGLING. MORE LIVING.</p>
-          <h2>All your plans.<br> A little more<br><em> possibility.</em></h2>
+          <h2>All your plans.<br> A little more <br class="cb-auth-desktop-break"><em>possibility.</em></h2>
           <p>Classes, deadlines, and everything in between. <br> One space to bring your day together.</p>
           <div class="cb-auth-tags"><span>School</span><span>Life</span><span>You</span></div>
           <small>Built for the rhythm of student life.</small>
@@ -4154,7 +4154,7 @@ const newItem = (k) => {
       }
       function login() {
         const c = LM === "up";
-        return `<main id="main-content" class="main login cb-auth" tabindex="-1"><aside class="cb-auth-story" aria-label="Welcome to Upnext"><a class="cb-auth-brand" href="#login">UPNEXT</a><span class="cb-auth-orbit" aria-hidden="true"></span><p class="cb-eyebrow">LESS JUGGLING. MORE LIVING.</p><h2>All your plans.<br>A little more<br><em>possibility.</em></h2><p>Classes, deadlines, and everything in between. One space to bring your day together.</p><div class="cb-auth-tags"><span>School</span><span>Life</span><span>You</span></div><small>Built for the rhythm of student life.</small></aside><section class="cb-auth-form"><p class="cb-eyebrow">MAKE YOURSELF AT HOME</p><h1>${c ? "Your next chapter." : "Welcome back."}</h1><p class="cb-auth-intro">${c ? "A fresh start for a more balanced day." : "Your plans are ready when you are."}</p>
+        return `<main id="main-content" class="main login cb-auth" tabindex="-1"><aside class="cb-auth-story" aria-label="Welcome to Upnext"><a class="cb-auth-brand" href="#login">UPNEXT</a><span class="cb-auth-orbit" aria-hidden="true"></span><p class="cb-eyebrow">LESS JUGGLING. MORE LIVING.</p><h2>All your plans.<br> A little more <br class="cb-auth-desktop-break"><em>possibility.</em></h2><p>Classes, deadlines, and everything in between. One space to bring your day together.</p><div class="cb-auth-tags"><span>School</span><span>Life</span><span>You</span></div><small>Built for the rhythm of student life.</small></aside><section class="cb-auth-form"><p class="cb-eyebrow">MAKE YOURSELF AT HOME</p><h1>${c ? "Your next chapter." : "Welcome back."}</h1><p class="cb-auth-intro">${c ? "A fresh start for a more balanced day." : "Your plans are ready when you are."}</p>
 ${DBERR.length ? `<div class="err">${DBERR.map(esc).join("<br>")}<br>Check the setup guide for missing tables or columns, then reload. If birth_date is missing, run tasks-events-update.sql.</div>` : ""}
 <div class="seg"><a href="#login" class="${c ? "" : "on"}" onclick="LM='in';r()">Log in</a><a href="#login" class="${c ? "on" : ""}" onclick="LM='up';r()">Create account</a></div>
 <form id="auth-form" ${c ? "novalidate" : ""} onsubmit="event.preventDefault();auth()">${c ? '<p class="signup-note">Only Full name, Email address, and Password are required. You can add everything else later in your profile.</p>' : ""}${c ? `<label for="su-name">Full name <span class="required-star" aria-hidden="true">*</span> <small class="required-label">Required</small></label><input id="su-name" type="text" maxlength="50" required autocomplete="name" aria-describedby="su-name-help" oninput="chk()"><small id="su-name-help" class="signup-field-help">Up to 50 characters. Use letters, spaces, hyphens, and apostrophes.</small>
