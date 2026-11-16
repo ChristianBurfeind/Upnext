@@ -2758,12 +2758,19 @@ details li {margin-bottom:8px;}
 /* Mobile layout corrections. Kept inside the mobile breakpoint so desktop
    geometry, accessibility markup, and page behavior remain unchanged. */
 @media (max-width:760px) {
+  #app[data-page="add"] {
+    width:100%;
+    max-width:100%;
+    overflow-x:clip;
+  }
   #app[data-page="add"] > .main {
     display:flex;
     flex-direction:column;
     align-items:center;
     min-width:0;
     width:100%;
+    max-width:100%;
+    overflow-x:clip;
   }
   #app[data-page="add"] > .main > * {
     box-sizing:border-box;
@@ -2773,36 +2780,46 @@ details li {margin-bottom:8px;}
   }
   #app[data-page="add"] > .main input:not([type="checkbox"]):not([type="color"]),
   #app[data-page="add"] > .main select,
-  #app[data-page="add"] > .main textarea,
+  #app[data-page="add"] > .main textarea {
+    box-sizing:border-box;
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+    min-height:46px;
+  }
   #app[data-page="add"] > .main .item-reminder-box,
-  #app[data-page="add"] > .main .repeat-days {
+  #app[data-page="add"] > .main .repeat-days,
+  #app[data-page="add"] > .main .type-picker {
     box-sizing:border-box;
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+  }
+  #app[data-page="add"] > .main .event-time-fields {
+    display:grid !important;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:8px;
     width:100%;
     max-width:100%;
     min-width:0;
   }
-  #app[data-page="add"] > .main > div > div[style*="display:flex"],
-  #app[data-page="add"] > .main > div > div[style*="display:flex"] > div {
-    box-sizing:border-box;
-    width:100%;
+  #app[data-page="add"] > .main .event-time-fields > div {
+    width:auto;
     max-width:100%;
     min-width:0;
   }
-  #app[data-page="add"] > .main > div > div[style*="display:flex"] > div {
-    flex:1 1 0;
-  }
-  #app[data-page="add"] > .main > div > div[style*="display:flex"] input[type="time"],
-  #app[data-page="add"] > .main > input[type="date"] {
+  #app[data-page="add"] > .main input[type="date"],
+  #app[data-page="add"] > .main input[type="time"] {
     display:block;
     box-sizing:border-box;
-    width:100%;
-    max-width:100%;
-    min-width:0;
-  }
-  #app[data-page="add"] > .main [style*="display:flex"],
-  #app[data-page="add"] > .main [style*="display:flex"] > * {
-    min-width:0;
-    max-width:100%;
+    inline-size:100% !important;
+    width:100% !important;
+    max-inline-size:100% !important;
+    max-width:100% !important;
+    min-inline-size:0 !important;
+    min-width:0 !important;
+    height:46px;
+    font-size:16px;
   }
 
   #app[data-page="settings"] .notification-settings,
@@ -2823,9 +2840,14 @@ details li {margin-bottom:8px;}
   #app[data-page="settings"] .notification-settings input[type="time"] {
     display:block;
     box-sizing:border-box;
-    width:100%;
-    max-width:100%;
-    min-width:0;
+    inline-size:min(100%,18rem) !important;
+    width:min(100%,18rem) !important;
+    max-inline-size:100% !important;
+    max-width:100% !important;
+    min-inline-size:0 !important;
+    min-width:0 !important;
+    height:42px;
+    font-size:16px;
   }
   #app[data-page="settings"] .notification-fields-row,
   #app[data-page="settings"] .notification-time-zone-row,
@@ -4962,7 +4984,7 @@ function setTodoView(view) {
           (it ? "Edit " : "Add ") + (ev ? "Event" : "Task"),
           `${it ? "" : `<div class="seg"><a class="${ev ? "" : "on"}" onclick="rd();AK='task';r()">Task</a><a class="${ev ? "on" : ""}" onclick="rd();AK='event';r()">Event</a></div>`}
 <label>Title</label><input id="f-title" maxlength="75" value="${esc(DR.title)}"><label>Date</label><input id="f-date" type="date" value="${DR.date}" onchange="rd();r()">
-${ev ? `<label class="all-day-toggle" for="f-all-day"><input id="f-all-day" type="checkbox" ${DR.allDay ? "checked" : ""} onchange="rd();r()"> All day</label><div ${DR.allDay ? "hidden" : ""}><div style="display:flex;gap:8px"><div style="flex:1"><label>Start</label><input id="f-time" type="time" value="${DR.time || "12:00"}"></div><div style="flex:1"><label>End</label><input id="f-end" type="time" value="${DR.end || "13:00"}"></div></div></div><label>Location</label><input id="f-loc" maxlength="100" value="${esc(DR.loc)}">${repeatControls ? `<label for="f-repeat">Repeat</label><select id="f-repeat" onchange="rd();r()"><option value="none" ${!DR.repeatFrequency ? "selected" : ""}>Does not repeat</option><option value="daily" ${DR.repeatFrequency === "daily" ? "selected" : ""}>Daily</option><option value="weekly" ${DR.repeatFrequency === "weekly" ? "selected" : ""}>Weekly</option><option value="monthly" ${DR.repeatFrequency === "monthly" ? "selected" : ""}>Monthly</option></select><div ${DR.repeatFrequency === "weekly" ? "" : "hidden"}><label>Repeat on</label><div class="repeat-days">${[[0,"Sun"],[1,"Mon"],[2,"Tue"],[3,"Wed"],[4,"Thu"],[5,"Fri"],[6,"Sat"]].map(([n,d]) => `<label class="repeat-day-option"><input class="repeat-day" type="checkbox" value="${n}" ${(DR.repeatDays || []).map(Number).includes(n) ? "checked" : ""} onchange="rd()">${d}</label>`).join("")}</div></div>${DR.repeatFrequency === "monthly" ? `<small class="repeat-help">Repeats on this date each month; months without that date are skipped.</small>` : ""}<div ${DR.repeatFrequency ? "" : "hidden"}><label for="f-repeat-until">End date (optional)</label><input id="f-repeat-until" type="date" min="${DR.date}" value="${DR.repeatUntil || ""}" onchange="rd()"><small class="repeat-help">Leave blank to repeat indefinitely.</small></div>` : ""}` : ""}
+${ev ? `<label class="all-day-toggle" for="f-all-day"><input id="f-all-day" type="checkbox" ${DR.allDay ? "checked" : ""} onchange="rd();r()"> All day</label><div ${DR.allDay ? "hidden" : ""}><div class="event-time-fields" style="display:flex;gap:8px"><div style="flex:1"><label>Start</label><input id="f-time" type="time" value="${DR.time || "12:00"}"></div><div style="flex:1"><label>End</label><input id="f-end" type="time" value="${DR.end || "13:00"}"></div></div></div><label>Location</label><input id="f-loc" maxlength="100" value="${esc(DR.loc)}">${repeatControls ? `<label for="f-repeat">Repeat</label><select id="f-repeat" onchange="rd();r()"><option value="none" ${!DR.repeatFrequency ? "selected" : ""}>Does not repeat</option><option value="daily" ${DR.repeatFrequency === "daily" ? "selected" : ""}>Daily</option><option value="weekly" ${DR.repeatFrequency === "weekly" ? "selected" : ""}>Weekly</option><option value="monthly" ${DR.repeatFrequency === "monthly" ? "selected" : ""}>Monthly</option></select><div ${DR.repeatFrequency === "weekly" ? "" : "hidden"}><label>Repeat on</label><div class="repeat-days">${[[0,"Sun"],[1,"Mon"],[2,"Tue"],[3,"Wed"],[4,"Thu"],[5,"Fri"],[6,"Sat"]].map(([n,d]) => `<label class="repeat-day-option"><input class="repeat-day" type="checkbox" value="${n}" ${(DR.repeatDays || []).map(Number).includes(n) ? "checked" : ""} onchange="rd()">${d}</label>`).join("")}</div></div>${DR.repeatFrequency === "monthly" ? `<small class="repeat-help">Repeats on this date each month; months without that date are skipped.</small>` : ""}<div ${DR.repeatFrequency ? "" : "hidden"}><label for="f-repeat-until">End date (optional)</label><input id="f-repeat-until" type="date" min="${DR.date}" value="${DR.repeatUntil || ""}" onchange="rd()"><small class="repeat-help">Leave blank to repeat indefinitely.</small></div>` : ""}` : ""}
 ${typeField(DR.type)}
 ${ev ? `
   <label for="f-color">Event Color</label>
