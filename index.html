@@ -2781,6 +2781,24 @@ details li {margin-bottom:8px;}
     max-width:100%;
     min-width:0;
   }
+  #app[data-page="add"] > .main > div > div[style*="display:flex"],
+  #app[data-page="add"] > .main > div > div[style*="display:flex"] > div {
+    box-sizing:border-box;
+    width:100%;
+    max-width:100%;
+    min-width:0;
+  }
+  #app[data-page="add"] > .main > div > div[style*="display:flex"] > div {
+    flex:1 1 0;
+  }
+  #app[data-page="add"] > .main > div > div[style*="display:flex"] input[type="time"],
+  #app[data-page="add"] > .main > input[type="date"] {
+    display:block;
+    box-sizing:border-box;
+    width:100%;
+    max-width:100%;
+    min-width:0;
+  }
   #app[data-page="add"] > .main [style*="display:flex"],
   #app[data-page="add"] > .main [style*="display:flex"] > * {
     min-width:0;
@@ -2801,6 +2819,13 @@ details li {margin-bottom:8px;}
   #app[data-page="settings"] .notification-settings select,
   #app[data-page="settings"] .notification-settings label:not(.notification-switch) {
     width:100%;
+  }
+  #app[data-page="settings"] .notification-settings input[type="time"] {
+    display:block;
+    box-sizing:border-box;
+    width:100%;
+    max-width:100%;
+    min-width:0;
   }
   #app[data-page="settings"] .notification-fields-row,
   #app[data-page="settings"] .notification-time-zone-row,
