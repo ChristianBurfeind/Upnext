@@ -5185,7 +5185,24 @@ ${i.holiday ? '<p class="photo-hint">Automatically added U.S. federal holiday</p
           r();
         } finally { itemBusy.delete(id); }
       }
-      
+
+let discoveryEvents = [];
+let discoveryActiveFilter = "all";
+
+function filterDiscovery(category) {
+  discoveryActiveFilter = category;
+
+  document.querySelectorAll(".discovery-filter").forEach(button => {
+    button.classList.toggle(
+      "active",
+      button.textContent.trim().toLowerCase() ===
+        (category === "all" ? "all events" : category)
+    );
+  });
+
+  renderFilteredDiscoveryEvents();
+}
+
 function disc() {
   const eventCards = `
     <div id="discovery-event-results">
@@ -5234,12 +5251,29 @@ function disc() {
 <div id="discovery-ai-results"></div>
 
 
-        <div class="discovery-filters">
-          <span class="discovery-filter active">All Events</span>
-          <span class="discovery-filter">Sports</span>
-          <span class="discovery-filter">Career</span>
-          <span class="discovery-filter">Social</span>
-        </div>
+        
+<div class="discovery-filters">
+  <button class="discovery-filter active"
+    onclick="filterDiscovery('all')">
+    All Events
+  </button>
+
+  <button class="discovery-filter"
+    onclick="filterDiscovery('sports')">
+    Sports
+  </button>
+
+  <button class="discovery-filter"
+    onclick="filterDiscovery('career')">
+    Career
+  </button>
+
+  <button class="discovery-filter"
+    onclick="filterDiscovery('social')">
+    Social
+  </button>
+</div>
+
 
         <div class="discovery-section-heading">
           <h3>Upcoming BYU Events</h3>
@@ -5257,11 +5291,9 @@ function disc() {
 }
 
 
-// Fetch real BYU events from Supabase.
+
 async function loadDiscoveryEvents() {
-  const results = document.getElementById(
-    "discovery-event-results"
-  );
+  const results = document.getElementById("discovery-event-results");
 
   if (!results) return;
 
@@ -5275,79 +5307,14 @@ async function loadDiscoveryEvents() {
 
     if (error) throw error;
 
-    // Stop if the user has navigated away.
+    // Stop if the user navigated away.
     if (!results.isConnected) return;
 
-    if (!data || data.length === 0) {
-      results.innerHTML = `
-        <p>No upcoming BYU events are available.</p>
-      `;
-      return;
-    }
+    // Store events so filters can use them.
+    discoveryEvents = data || [];
 
-    const eventCards = data.map((event) => {
-      const start = new Date(event.start_time);
-
-      const date = start.toLocaleDateString("en-US", {
-        weekday: "short",
-        month: "short",
-        day: "numeric",
-        timeZone: "America/Denver"
-      });
-
-      const time = start.toLocaleTimeString("en-US", {
-        hour: "numeric",
-        minute: "2-digit",
-        timeZone: "America/Denver"
-      });
-
-      const category = event.category || "Student Life";
-
-      return `
-        <div class="discovery-card">
-          <div class="discovery-card-top">
-            <span class="discovery-category"
-              style="background:#2563eb">
-              ${esc(category)}
-            </span>
-            <span class="discovery-match">
-              ✨ BYU Event
-            </span>
-          </div>
-
-          <h3>${esc(event.title)}</h3>
-
-          <p>📅 ${esc(date)} · ${esc(time)}</p>
-          <p>📍 ${esc(event.location || "BYU Campus")}</p>
-
-          <p class="discovery-description">
-            ${esc(event.description || "View event details for more information.")}
-          </p>
-
-          ${event.source_url ? `
-            <a
-              class="btn"
-              href="${esc(event.source_url)}"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              View Event Details
-            </a>
-          ` : ""}
-
-          
-            <button
-              class="btn"
-              onclick="addDiscoveryToCalendar('${event.id}')"
-              >
-              + Add to Calendar
-            </button>
-
-        </div>
-      `;
-    }).join("");
-
-    results.innerHTML = eventCards;
+    // Display events using the selected filter.
+    renderFilteredDiscoveryEvents();
 
   } catch (error) {
     console.error("Error loading Discovery events:", error);
@@ -5358,6 +5325,110 @@ async function loadDiscoveryEvents() {
       `;
     }
   }
+}
+
+function renderFilteredDiscoveryEvents() {
+  const results = document.getElementById("discovery-event-results");
+
+  if (!results) return;
+
+  const filtered = discoveryEvents.filter((event) => {
+    if (discoveryActiveFilter === "all") return true;
+
+    const category = (event.category || "").toLowerCase();
+
+    const searchText = [
+      event.title || "",
+      event.description || "",
+      event.category || ""
+    ].join(" ").toLowerCase();
+
+    if (discoveryActiveFilter === "sports") {
+      return /sport|basketball|football|soccer|volleyball|baseball|tennis|athletic|game|intramural/.test(searchText);
+    }
+
+    if (discoveryActiveFilter === "career") {
+      return /career|network|internship|job|recruit|employer|professional|resume|résumé|workshop/.test(searchText);
+    }
+
+    if (discoveryActiveFilter === "social") {
+      return /social|student life|fhe|party|dance|game night|activity|meetup|festival/.test(searchText);
+    }
+
+    return category === discoveryActiveFilter;
+  });
+
+  if (filtered.length === 0) {
+    results.innerHTML = `
+      <div class="discovery-card">
+        <p>No upcoming events match this filter.</p>
+        <p>Try another category or check back later.</p>
+      </div>
+    `;
+    return;
+  }
+
+  const eventCards = filtered.map((event) => {
+    const start = new Date(event.start_time);
+
+    const date = start.toLocaleDateString("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+      timeZone: "America/Denver"
+    });
+
+    const time = start.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      timeZone: "America/Denver"
+    });
+
+    const category = event.category || "Student Life";
+
+    return `
+      <div class="discovery-card">
+        <div class="discovery-card-top">
+          <span class="discovery-category"
+            style="background:#2563eb">
+            ${esc(category)}
+          </span>
+          <span class="discovery-match">
+            ✨ BYU Event
+          </span>
+        </div>
+
+        <h3>${esc(event.title)}</h3>
+
+        <p>📅 ${esc(date)} · ${esc(time)}</p>
+        <p>📍 ${esc(event.location || "BYU Campus")}</p>
+
+        <p class="discovery-description">
+          ${esc(event.description || "View event details for more information.")}
+        </p>
+
+        ${event.source_url ? `
+          <a
+            class="btn"
+            href="${esc(event.source_url)}"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            View Event Details
+          </a>
+        ` : ""}
+
+        <button
+          class="btn"
+          onclick="addDiscoveryToCalendar('${event.id}')"
+        >
+          + Add to Calendar
+        </button>
+      </div>
+    `;
+  }).join("");
+
+  results.innerHTML = eventCards;
 }
 
 const discoverySaving = new Set();
@@ -7214,9 +7285,10 @@ function r() {
   // NEW: Load real BYU events when Discovery opens.
   
   // Load real BYU events when Discovery opens.
-  if (h === "discovery") {
-    loadDiscoveryEvents();
-  }
+ if (h === "discovery") {
+  discoveryActiveFilter = "all";
+  loadDiscoveryEvents();
+}
 
   // Restore saved AI interests when Settings opens.
   if (h === "settings") {
