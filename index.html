@@ -3957,6 +3957,56 @@ const newItem = (k) => {
       }
       let pendingEmail =
         sessionStorage.getItem("scheduler_pending_email") || "";
+      const confirmationRedirect = "https://christianburfeind.github.io/Upnext/";
+      const resendCooldown = 30_000;
+      const resendDeadlineKey = "scheduler_resend_deadline";
+      let resendDeadline = Number(sessionStorage.getItem(resendDeadlineKey)) || 0;
+      let resendTimer;
+      let resending = false;
+
+      function startResendCooldown() {
+        resendDeadline = Date.now() + resendCooldown;
+        sessionStorage.setItem(resendDeadlineKey, String(resendDeadline));
+      }
+
+      function updateResendButton() {
+        clearTimeout(resendTimer);
+        const button = $("#resend-confirmation");
+        if (!button) return;
+        const seconds = Math.max(0, Math.ceil((resendDeadline - Date.now()) / 1000));
+        button.disabled = resending || seconds > 0 || !useSB || !pendingEmail;
+        button.style.opacity = button.disabled ? "0.65" : "1";
+        button.textContent = resending ? "Sending…" : "Resend confirmation email";
+        $("#resend-countdown").textContent = seconds > 0 ? "Resend available in " + seconds + "s" : "";
+        if (seconds > 0) resendTimer = setTimeout(updateResendButton, 250);
+      }
+
+      async function resendConfirmation() {
+        if (resending || Date.now() < resendDeadline || !pendingEmail || !useSB) return;
+        const email = pendingEmail;
+        const status = $("#resend-status");
+        resending = true;
+        status.textContent = "";
+        updateResendButton();
+        try {
+          const { error } = await sb.auth.resend({
+            type: "signup",
+            email,
+            options: { emailRedirectTo: confirmationRedirect },
+          });
+          if (error) throw error;
+          if (email === pendingEmail) startResendCooldown();
+          status.textContent = "Confirmation email sent. Check your inbox.";
+        } catch (error) {
+          status.textContent = error.status === 429
+            ? "Email sending is temporarily limited. Wait a little longer and try again."
+            : nice(error);
+        } finally {
+          resending = false;
+          updateResendButton();
+        }
+      }
+
       function confirmEmail() {
         return `<main id="main-content" class="main login" tabindex="-1" aria-labelledby="confirm-title">
           <div class="welcome-icon" aria-hidden="true">💌</div>
@@ -3969,6 +4019,9 @@ const newItem = (k) => {
           <button class="btn" onclick="LM='in';go('login');r()">Back to log in</button>
           <button class="btn alt" onclick="LM='up';go('login');r()">Use a different email</button>
           <p class="welcome-copy" style="font-size:13px">Don’t see it? Check your spam or junk folder, and give it a few minutes.</p>
+          <button type="button" id="resend-confirmation" style="border:0;background:transparent;color:var(--pri);font:inherit;font-size:11px;text-decoration:underline;padding:8px;cursor:pointer" disabled onclick="resendConfirmation()">Resend confirmation email</button>
+          <small id="resend-countdown" style="display:block;font-size:10px;color:var(--mut)"></small>
+          <div id="resend-status" role="status" style="font-size:12px"></div>
         </main>`;
       }
       function login() {
@@ -4157,7 +4210,7 @@ ${!useSB ? "<p>Live login requires your Supabase URL and public key.</p>" : ""}<
                   email,
                   password,
                   options: {
-                    emailRedirectTo: "https://christianburfeind.github.io/Upnext/",
+                    emailRedirectTo: confirmationRedirect,
                     data: {
                       name: $("#su-name").value.trim(),
                       school: $("#su-school").value.trim(),
@@ -4178,6 +4231,7 @@ ${!useSB ? "<p>Live login requires your Supabase URL and public key.</p>" : ""}<
           if (result.error) throw result.error;
           if (!result.data.session) {
             pendingEmail = email;
+            startResendCooldown();
             sessionStorage.setItem("scheduler_pending_email", email);
             go("confirm-email");
             r();
@@ -6785,6 +6839,7 @@ function r() {
   document.documentElement.dataset.theme = S.set.theme;
   $("#app").dataset.page = h;
   $("#app").innerHTML = f();
+  updateResendButton();
   cbEnhanceAccessibility(h);
   trackActivityPage(h);
 
