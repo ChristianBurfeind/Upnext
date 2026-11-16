@@ -1307,7 +1307,7 @@ body, #app { background:#f3f7fd; }
 .mo > div { min-height:94px; border:0; border-right:1px solid #e6ecf5; border-bottom:1px solid #e6ecf5; border-radius:0; text-align:left; padding:9px; background:white; }
 .mo > div:hover { background:#f0f6ff; }
 .mo .td { outline:0; background:#e9f3ff; box-shadow:inset 0 0 0 2px #2365b1; }
-.mo u { background:#dceafd!important; color:#002e5d; padding:4px 6px; border-radius:5px; }
+.mo u { background:#dceafd; color:#002e5d; padding:4px 6px; border-radius:5px; }
 .campus-layout { display:grid; grid-template-columns:minmax(0,1fr) 245px; gap:20px; align-items:start; }
 .campus-side { display:grid; gap:16px; }
 .campus-panel { background:#fff; border:1px solid var(--line); border-radius:14px; padding:18px; box-shadow:0 8px 25px #002e5d0b; }
@@ -2653,7 +2653,7 @@ details li {margin-bottom:8px;}
 .mo > div,.campus-calendar .mo > div {background:var(--card);border-color:var(--line);color:var(--ink);}
 .mo > div:hover,.campus-calendar .mo > div:hover {background:var(--acc);}
 .mo .td,.campus-calendar .mo .td {background:var(--acc);outline:2px solid var(--pri);outline-offset:-2px;box-shadow:none;}
-.mo u {background:var(--acc)!important;color:var(--ink);}
+.mo u {background:var(--acc);color:var(--ink);}
 .wk {gap:10px;}.wk > div {background:var(--card);border:1px solid var(--line);border-radius:12px;}
 .wk > div > b {padding:12px 0;color:var(--ink);}
 .grid {background:var(--card);border:1px solid var(--line);border-radius:12px;}
@@ -3004,6 +3004,7 @@ details li {margin-bottom:8px;}
           date: "Date",
           start: "Start_Time",
           end: "End_Time",
+          color: "event_color",
           allDay: "is_all_day",
           loc: "Location",
           type: "Type",
@@ -3093,6 +3094,10 @@ details li {margin-bottom:8px;}
         const key = typeKey(value);
         return Object.hasOwn(T, key) ? T[key] : [cleanType(value) || "Personal", "#526d91"];
       };
+      const customEventColor = (value) =>
+        typeof value === "string" && /^#[0-9a-f]{6}$/i.test(value) ? value : null;
+      const eventColor = (event) =>
+        customEventColor(event.color) || typeInfo(event.type)[1];
       function typeChoices(query = "") {
         const seen = new Set();
         return [...Object.keys(T), ...(S.customTypes || []), ...S.items.map(i => i.type)]
@@ -3307,6 +3312,7 @@ details li {margin-bottom:8px;}
                     start: it.allDay ? null : ts(it.time),
                     end: it.allDay ? null : ts(it.end),
                     allDay: !!it.allDay,
+                    color: customEventColor(it.color),
                     loc: it.loc || "",
                     type: it.type,
                     pri: +it.pri,
@@ -3742,6 +3748,7 @@ details li {margin-bottom:8px;}
             allDay: r[ME.allDay] === true,
             time: tt(r[ME.start]),
             end: tt(r[ME.end]),
+            color: customEventColor(r[ME.color]),
             loc: r[ME.loc] || "",
             type: ty(r[ME.type]),
             pri: readPriority(r[ME.pri]),
@@ -4034,7 +4041,7 @@ function cbIcon(name) {
 function shell(title, body, o = {}) {
   const route = (location.hash || '#summary').slice(1);
   const subtitle = {summary:'A little structure. A lot more possibility.',day:'Make room for what matters.',week:'Your week, with a little breathing room.',month:'See the bigger picture.',todo:'One thing at a time. You have this.',discovery:'Find your next good thing.',settings:'Make this space your own.',profile:'The person behind the plans.',add:'Give your plans a place to land.'}[route] || 'Your day, beautifully in balance.';
-  const links = [['s','summary','Summary','summary'],['c','day','Calendar','calendar'],['t','todo','To-Do','todo'],['d','discovery','Discovery','discovery'],['settings','settings','Settings','settings']];
+  const links = [['s','summary','Summary','summary'],['c',S.set.view,'Calendar','calendar'],['t','todo','To-Do','todo'],['d','discovery','Discovery','discovery'],['settings','settings','Settings','settings']];
   return `<header class="top"><div class="cb-page-heading"><p class="cb-eyebrow">UPNEXT</p><h1>${title}</h1><p class="cb-subtitle">${subtitle}</p></div><div class="cb-top-actions">${o.left || '<a class="ic" href="#settings" aria-label="Open settings">' + cbIcon('settings') + '</a>'}${o.right || `<a class="ic cb-profile-link" href="#profile" aria-label="Open profile">${S.photo ? `<img src="${esc(S.photo)}" alt="">` : profileInitial()}</a>`}</div></header>
     <main id="main-content" class="main" tabindex="-1">${body}</main>
     ${o.fab ? '<button class="fab" onclick="newItem()" aria-label="Add task or event">' + cbIcon('plus') + ' Add new</button>' : ''}
@@ -4090,6 +4097,56 @@ const newItem = (k) => {
       }
       let pendingEmail =
         sessionStorage.getItem("scheduler_pending_email") || "";
+      const confirmationRedirect = "https://christianburfeind.github.io/Upnext/";
+      const resendCooldown = 30_000;
+      const resendDeadlineKey = "scheduler_resend_deadline";
+      let resendDeadline = Number(sessionStorage.getItem(resendDeadlineKey)) || 0;
+      let resendTimer;
+      let resending = false;
+
+      function startResendCooldown() {
+        resendDeadline = Date.now() + resendCooldown;
+        sessionStorage.setItem(resendDeadlineKey, String(resendDeadline));
+      }
+
+      function updateResendButton() {
+        clearTimeout(resendTimer);
+        const button = $("#resend-confirmation");
+        if (!button) return;
+        const seconds = Math.max(0, Math.ceil((resendDeadline - Date.now()) / 1000));
+        button.disabled = resending || seconds > 0 || !useSB || !pendingEmail;
+        button.style.opacity = button.disabled ? "0.65" : "1";
+        button.textContent = resending ? "Sending…" : "Resend confirmation email";
+        $("#resend-countdown").textContent = seconds > 0 ? "Resend available in " + seconds + "s" : "";
+        if (seconds > 0) resendTimer = setTimeout(updateResendButton, 250);
+      }
+
+      async function resendConfirmation() {
+        if (resending || Date.now() < resendDeadline || !pendingEmail || !useSB) return;
+        const email = pendingEmail;
+        const status = $("#resend-status");
+        resending = true;
+        status.textContent = "";
+        updateResendButton();
+        try {
+          const { error } = await sb.auth.resend({
+            type: "signup",
+            email,
+            options: { emailRedirectTo: confirmationRedirect },
+          });
+          if (error) throw error;
+          if (email === pendingEmail) startResendCooldown();
+          status.textContent = "Confirmation email sent. Check your inbox.";
+        } catch (error) {
+          status.textContent = error.status === 429
+            ? "Email sending is temporarily limited. Wait a little longer and try again."
+            : nice(error);
+        } finally {
+          resending = false;
+          updateResendButton();
+        }
+      }
+
       function confirmEmail() {
         return `<main id="main-content" class="main login" tabindex="-1" aria-labelledby="confirm-title">
           <div class="welcome-icon" aria-hidden="true">💌</div>
@@ -4102,6 +4159,9 @@ const newItem = (k) => {
           <button class="btn" onclick="LM='in';go('login');r()">Back to log in</button>
           <button class="btn alt" onclick="LM='up';go('login');r()">Use a different email</button>
           <p class="welcome-copy" style="font-size:13px">Don’t see it? Check your spam or junk folder, and give it a few minutes.</p>
+          <button type="button" id="resend-confirmation" style="border:0;background:transparent;color:var(--pri);font:inherit;font-size:11px;text-decoration:underline;padding:8px;cursor:pointer" disabled onclick="resendConfirmation()">Resend confirmation email</button>
+          <small id="resend-countdown" style="display:block;font-size:10px;color:var(--mut)"></small>
+          <div id="resend-status" role="status" style="font-size:12px"></div>
         </main>`;
       }
       function login() {
@@ -4290,7 +4350,7 @@ ${!useSB ? "<p>Live login requires your Supabase URL and public key.</p>" : ""}<
                   email,
                   password,
                   options: {
-                    emailRedirectTo: "https://christianburfeind.github.io/IS401_CalendarAppProject/",
+                    emailRedirectTo: confirmationRedirect,
                     data: {
                       name: $("#su-name").value.trim(),
                       school: $("#su-school").value.trim(),
@@ -4311,6 +4371,7 @@ ${!useSB ? "<p>Live login requires your Supabase URL and public key.</p>" : ""}<
           if (result.error) throw result.error;
           if (!result.data.session) {
             pendingEmail = email;
+            startResendCooldown();
             sessionStorage.setItem("scheduler_pending_email", email);
             go("confirm-email");
             r();
@@ -4351,7 +4412,7 @@ ${!useSB ? "<p>Live login requires your Supabase URL and public key.</p>" : ""}<
         return shell('Your day, in focus.', `
           <section class="cb-hero" aria-label="Daily overview"><div class="cb-welcome"><p class="cb-eyebrow">A FRESH PERSPECTIVE</p><h2>Hello, ${esc(firstName)}.</h2><p>${L(TODAY,{weekday:'long',month:'long',day:'numeric',year:'numeric'})}</p><span class="cb-hero-shape" aria-hidden="true"></span></div><div class="cb-stat"><span class="cb-eyebrow">ON YOUR RADAR</span><strong>${pending.length}</strong><span>tasks due today</span><small>${todayEvents.length} events · ${social} social plans</small></div></section>
           <div class="cb-summary-grid"><section class="cb-panel cb-task-panel"><header class="cb-panel-heading"><h2>Tasks due today</h2><span class="cb-count">${pending.length} remaining</span></header><p class="cb-panel-intro">Make progress, one checkbox at a time.</p>${todayTasks.map(trow).join('') || '<div class="cb-empty">A little breathing room.<small>No tasks due today.</small></div>'}<a class="cb-text-link" href="#todo">Open your to-do list <span aria-hidden="true">↗</span></a></section>
-          <section class="cb-panel cb-schedule-panel"><header class="cb-panel-heading"><h2>Today's schedule</h2>${cbIcon('calendar')}</header>${todayEvents.map(evRow).join('') || '<div class="cb-empty">An open canvas.<small>No events scheduled today.</small></div>'}<a class="cb-text-link" href="#day" onclick="D=TODAY">View calendar <span aria-hidden="true">↗</span></a></section>
+          <section class="cb-panel cb-schedule-panel"><header class="cb-panel-heading"><h2>Today's schedule</h2>${cbIcon('calendar')}</header>${todayEvents.map(evRow).join('') || '<div class="cb-empty">An open canvas.<small>No events scheduled today.</small></div>'}<a class="cb-text-link" href="#${S.set.view}" onclick="D=TODAY">View calendar <span aria-hidden="true">↗</span></a></section>
           <section class="cb-panel cb-upcoming-panel"><header class="cb-panel-heading"><h2>Coming up</h2>${cbIcon('todo')}</header>${nextTasks.map(item => `<button class="cb-upcoming-item" type="button" onclick="openEv('${item.id}')"><span>${L(item.date,{weekday:'short',month:'short',day:'numeric'})}</span><strong>${esc(item.title)}</strong></button>`).join('') || '<p class="cb-panel-intro">Your next seven days are clear of tasks.</p>'}</section></div>
           ${reminders.length ? `<section class="cb-panel cb-reminders"><details><summary>Your reminders <span class="cb-count">${reminders.length}</span></summary><p class="cb-panel-intro">School deadlines and social plans coming up soon.</p>${reminders.map(item => `<button class="cb-reminder-item" type="button" onclick="openEv('${item.id}')">${esc(item.title)}<span>${item.kind === 'event' ? 'Starts at ' + t12(item.time) : (item.date === TODAY ? 'Due today' : 'Due tomorrow')}</span></button>`).join('')}</details></section>` : ''}`, {nav:'s',fab:1});
       }
@@ -4387,7 +4448,7 @@ ${!useSB ? "<p>Live login requires your Supabase URL and public key.</p>" : ""}<
               style="
                 top:${((s - startHour * 60) / 60) * 48 + 1}px;
                 height:${Math.max(24, ((en - s) / 60) * 48 - 3)}px;
-                background:${e.color || typeInfo(e.type)[1]}
+                background:${eventColor(e)}
               "
               onclick="openEv('${e.id}')"
             >
@@ -4414,7 +4475,7 @@ ${!useSB ? "<p>Live login requires your Supabase URL and public key.</p>" : ""}<
                         padding:10px 12px;
                         border:0;
                         border-radius:10px;
-                        background:${e.color || typeInfo(e.type)[1]};
+                        background:${eventColor(e)};
                         color:white;
                         text-align:left;
                         font:inherit;
@@ -4497,7 +4558,7 @@ ${!useSB ? "<p>Live login requires your Supabase URL and public key.</p>" : ""}<
                     .join("")}<hr>${evs(d)
                     .map(
                       (e) =>
-                        `<span style="background:${typeInfo(e.type)[1]}" onclick="openEv('${e.id}')">${e.allDay ? "" : t12(e.time) + "<br>"}${esc(e.title)}</span>`,
+                        `<span style="background:${eventColor(e)}" onclick="openEv('${e.id}')">${e.allDay ? "" : t12(e.time) + "<br>"}${esc(e.title)}</span>`,
                     )
                     .join("")}</div>`,
               )
@@ -4530,7 +4591,7 @@ ${!useSB ? "<p>Live login requires your Supabase URL and public key.</p>" : ""}<
                   .slice(0, 3)
                   .map(
                     (i) =>
-                      `<u style="background:${typeInfo(i.type)[1]}">${esc(i.title)}</u>`,
+                      `<u ${i.kind === "event" && customEventColor(i.color) ? `class="custom-event-color" style="background:${eventColor(i)}"` : ""}>${esc(i.title)}</u>`,
                   )
                   .join(
                     "",
@@ -4841,7 +4902,8 @@ ${ev ? `
     <input
       id="f-color"
       type="color"
-      value="${DR.color || typeInfo(DR.type)[1]}"
+      value="${eventColor(DR)}"
+      oninput="DR.color=this.value"
       style="width:55px;height:40px;padding:3px;cursor:pointer"
     >
     <span>Choose a custom event color</span>
@@ -4874,7 +4936,6 @@ ${S.notificationSetupReady ? itemReminderFields(ev) : `<p class="notification-he
           end: g("end") ?? DR.end,
           lloc: g("loc") ?? DR.loc,
           type: g("type") ?? DR.type,
-          color: g("color") ?? DR.color,
           pri: g("pri") != null ? Number(g("pri")) : DR.pri,
           desc: g("desc") ?? DR.desc,
           repeatFrequency: g("repeat") === "none" ? null : g("repeat") ?? DR.repeatFrequency ?? null,
@@ -7081,7 +7142,7 @@ function loadDiscoveryInterests() {
 /* Accessibility enhancements for legacy inline click targets. */
 function cbEnhanceAccessibility(route) {
   // Contrast adapts to custom event colors without changing the saved color.
-  document.querySelectorAll('.ev, .wk span[onclick], [style*="background"][onclick]').forEach(el => {
+  document.querySelectorAll('.ev, .wk span[onclick], .mo .custom-event-color, [style*="background"][onclick]').forEach(el => {
     const rgb = getComputedStyle(el).backgroundColor.match(/\d+(?:\.\d+)?/g);
     if (!rgb || rgb.length < 3 || (rgb.length > 3 && Number(rgb[3]) === 0)) return;
     const linear = rgb.slice(0,3).map(v => {
@@ -7131,6 +7192,7 @@ function r() {
   document.documentElement.dataset.theme = S.set.theme;
   $("#app").dataset.page = h;
   $("#app").innerHTML = f();
+  updateResendButton();
   cbEnhanceAccessibility(h);
   trackActivityPage(h);
 
