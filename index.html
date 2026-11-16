@@ -2812,10 +2812,11 @@ details li {margin-bottom:8px;}
   #app[data-page="add"] > .main input[type="time"] {
     display:block;
     box-sizing:border-box;
-    inline-size:100% !important;
-    width:100% !important;
-    max-inline-size:100% !important;
-    max-width:100% !important;
+    /* Safari's native date/time controls can paint wider than their CSS cell. */
+    inline-size:calc(100% - 10px) !important;
+    width:calc(100% - 10px) !important;
+    max-inline-size:calc(100% - 10px) !important;
+    max-width:calc(100% - 10px) !important;
     min-inline-size:0 !important;
     min-width:0 !important;
     height:46px;
@@ -2840,10 +2841,11 @@ details li {margin-bottom:8px;}
   #app[data-page="settings"] .notification-settings input[type="time"] {
     display:block;
     box-sizing:border-box;
-    inline-size:min(100%,18rem) !important;
-    width:min(100%,18rem) !important;
-    max-inline-size:100% !important;
-    max-width:100% !important;
+    /* Keep the native time picker inside the card's padded content area. */
+    inline-size:min(calc(100% - 10px),16rem) !important;
+    width:min(calc(100% - 10px),16rem) !important;
+    max-inline-size:calc(100% - 10px) !important;
+    max-width:calc(100% - 10px) !important;
     min-inline-size:0 !important;
     min-width:0 !important;
     height:42px;
