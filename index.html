@@ -2797,14 +2797,16 @@ details li {margin-bottom:8px;}
   }
   #app[data-page="add"] > .main .event-time-fields {
     display:grid !important;
-    grid-template-columns:repeat(2,minmax(0,1fr));
-    gap:8px;
+    grid-template-columns:minmax(0,1fr);
+    gap:4px;
     width:100%;
     max-width:100%;
     min-width:0;
   }
   #app[data-page="add"] > .main .event-time-fields > div {
-    width:auto;
+    display:block;
+    flex:none;
+    width:100%;
     max-width:100%;
     min-width:0;
   }
@@ -2812,14 +2814,28 @@ details li {margin-bottom:8px;}
   #app[data-page="add"] > .main input[type="time"] {
     display:block;
     box-sizing:border-box;
-    /* Safari's native date/time controls can paint wider than their CSS cell. */
-    inline-size:calc(100% - 10px) !important;
-    width:calc(100% - 10px) !important;
-    max-inline-size:calc(100% - 10px) !important;
-    max-width:calc(100% - 10px) !important;
+    /* In iOS Safari these native controls can render beyond their CSS width. */
+    inline-size:calc(100% - 20px) !important;
+    width:calc(100% - 20px) !important;
+    max-inline-size:calc(100% - 20px) !important;
+    max-width:calc(100% - 20px) !important;
     min-inline-size:0 !important;
     min-width:0 !important;
     height:46px;
+    margin-inline:10px;
+    font-size:16px;
+  }
+  #app[data-page="add"] > .main .item-reminder-box input:not([type="checkbox"]),
+  #app[data-page="add"] > .main .item-reminder-box select {
+    box-sizing:border-box;
+    inline-size:calc(100% - 20px) !important;
+    width:calc(100% - 20px) !important;
+    max-inline-size:calc(100% - 20px) !important;
+    max-width:calc(100% - 20px) !important;
+    min-inline-size:0 !important;
+    min-width:0 !important;
+    height:46px;
+    margin-inline:0;
     font-size:16px;
   }
 
